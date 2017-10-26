@@ -160,9 +160,9 @@ class OpenCluster():
 		sampedro=[self.sampedro_n0,self.sampedro_n1,self.sampedro_n2,self.sampedro_n3]
 		
 		if cat=='Pan-STARRS':
-			l=self.PS	
+			l=list(self.PS)	
 		elif cat == 'K2MASS':
-			l=self.K2MASS
+			l=list(self.K2MASS)
 		else:
 			print('This is not a valid catalog chiffre. I\'ll use Pan-STARRS.')
 			l=self.PS
@@ -175,30 +175,37 @@ class OpenCluster():
 
 		#assume ra1/dec1 and ra/dec2 are arrays loaded from some file
 		
-		c = ICRS(ra=ra3, dec=dec3)#c=cluster stars from Sampedro
-		catalog = ICRS(ra=ra2, dec=dec2)#catalog=panstarrs has all the parameters
+		c = ICRS(ra=ra3, dec=dec3)#cluster stars from Sampedro
+		catalog = ICRS(ra=ra2, dec=dec2)#panstarrs or K2MASS has all the parameters
 
 		#match Sampedro cluster members with Pan-STARRS
-		
-		idx, d2d, d3d = match_coordinates_sky(c, catalog) #idx are indices into catalog that are the closest objects to each of the coordinates in c
-		match_idx=are_within_bounds(d2d,'0h0m0s', dist)
-		
-		print(len(match_idx))
+	#	print(len(c))
+	#	print(len(catalog))
+		idx, d2d, d3d = match_coordinates_sky(c,catalog) #idx are indices into catalog that are the closest objects to each of the coordinates in c
+	#	print(idx)
+	#	print(d2d)
+		match_idx=are_within_bounds(idx,d2d,'0h0m0s', dist)
+	#	print(match_idx)
+		print('Sampedro_n' + str(n) + ' X ' + cat + ' X ' + dist + ': ' + str(len(match_idx)) + ' matching objects.')
+	#	print(len(match_idx))
 	
 		return match_idx
 
-	def second_match(self, match_idx_PS, dist='0h0m3s'):
+	def second_order_match(self, n, distPS='0h0m3s', dist='0h0m3s'):
 
 		'''
 		
-		Matching K2 and Pan-STARRS (conditional on Sampedro cluster membership).
+		Matching K2 and Pan-STARRS (conditional on Sampedro cluster membership with (n) shared assessments).
 		
 		'''
 
 		lK2=list(self.K2)
 		lPS=list(self.PS)
-		idx_K2=list(range(len(lK2[0])))
-		print('K2 object list has '+ str(len(idx_K2))+ ' LCs.')
+
+		match_idx_PS=self.sampedro_match(n, dist=distPS, cat='Pan-STARRS')
+
+		idx_K2=list(range(len(lK2[0])))#is that one even necessary???
+		#print('K2 object list has '+ str(len(idx_K2))+ ' LCs.')
 
 		for _ in range(len(self.K2)):
 			lK2[_]= [i for j, i in enumerate(lK2[_]) if j in idx_K2]
@@ -206,7 +213,7 @@ class OpenCluster():
 		for _ in range(len(self.PS)):
 			lPS[_]= [i for j, i in enumerate(lPS[_]) if j in match_idx_PS]
 
-		print('From the ' + self.name + ' members as assessed by Sampedro ' + str(len(lPS[0])) + ' have an Pan-STARRS ID.')
+	#	print('From the ' + self.name + ' members as assessed by Sampedro ' + str(len(lPS[0])) + ' have an Pan-STARRS ID.')
 		ra2=Angle(lK2[1],unit=u.deg)
 		dec2=Angle(lK2[2],unit=u.deg)
 			
@@ -220,11 +227,10 @@ class OpenCluster():
 
 		#match Sampedro cluster members with Pan-STARRS
 		
-		idx, d2d, d3d = match_coordinates_sky(c, catalog) #idx are indices into catalog that are the closest objects to each of the coordinates in c
-		second_match_idx=are_within_bounds(d2d,'0h0m0s', dist)
+		idx, d2d, d3d = match_coordinates_sky(c, catalog,nthneighbor=1) #idx are indices into catalog that are the closest objects to each of the coordinates in c
+		second_match_idx=are_within_bounds(idx, d2d,'0h0m0s', dist)
+		print('Sampedro_n' + str(n) + ' X  Pan-STARRS X K2 X ' + dist + ': ' + str(len(second_match_idx)) + ' matching objects.')
 		
-		print('Of these two list ' + str(len(second_match_idx)) + ' do have Pan-STARRS IDs AND K2 LCs in the cluster within respective separations ' + dist + '.')
-	
 		return second_match_idx
 
 
@@ -236,11 +242,40 @@ def find(name, path):
         if name in files:
             return os.path.join(root, name)
 
-def are_within_bounds(arr, min_angle, max_angle):
+def are_within_bounds(idx,d2d, min_angle, max_angle):
 	l=[]
-	for _ in range(len(arr)):	
-		if arr[_].is_within_bounds(min_angle, max_angle): l.append(_)
-	return l
+	d=[]
+	for _ in range(len(d2d)):	
+		if d2d[_].is_within_bounds(min_angle, max_angle): 
+			l.append(idx[_])
+			d.append(d2d[_])
+	
+	n=[]
+	lpop=list(l)
+	dpop=list(d)
+	while len(lpop)>0:
+		#find same indices
+		m=[i for i, j in enumerate(lpop) if j == lpop[0]]
+	#	print('m:')
+	#	print(len(m))
+		if len(m)>1:
+	#		print(m)
+			for k in range(len(m)-1):
+				if dpop[m[k]].is_within_bounds(dpop[m[k+1]]): 
+					minidx=lpop[m[k]]
+				else: 
+					minidx=lpop[m[k+1]]
+		else: minidx=lpop[m[0]]
+		n.append(minidx)
+		lpop=[i for j, i in enumerate(lpop) if j not in m]
+		dpop=[i for j, i in enumerate(dpop) if j not in m]
+		# print('lpop:')
+		# print(lpop)
+		# print('n:')
+		# print(n)
+	
+
+	return n
 
 
 #Wrapping it:
@@ -250,41 +285,38 @@ x.loadcatalogs()
 x.refinesampedro()
 
 
-#print('Sampedro_n0 X Pan-STARRS X 5\"')
-#x.sampedro_match(0,dist='0h0m5s')
-#print('Sampedro_n0 X Pan-STARRS X 3\"')
-A=x.sampedro_match(0,dist='0h0m3s')
-#print('Sampedro_n1 X Pan-STARRS X 5\"')
-#x.sampedro_match(1,dist='0h0m5s')
-#print('Sampedro_n1 X Pan-STARRS X 3\"')
-#B=x.sampedro_match(1,dist='0h0m3s')
 
-x.second_match(A)
-#x.second_match(B)
+for i in range(1,4):
+	#10
+	x.sampedro_match(i,dist='0h0m5s',cat='Pan-STARRS')
+	#11
+	x.sampedro_match(i,dist='0h0m3s',cat='Pan-STARRS')
+for i in range(1,4):
+	#16,18,20
+	x.sampedro_match(i,dist='0h0m5s',cat='K2MASS')
+	#17,19,21     
+	x.sampedro_match(i,dist='0h0m3s',cat='K2MASS')
+for i in range(1,4):
+	#22,26,30
+	x.second_order_match(i,distPS='0h0m5s',dist='0h0m5s')
+	#23,27,31
+	x.second_order_match(i,distPS='0h0m5s',dist='0h0m3s')
+	#24,28,32
+	x.second_order_match(i,distPS='0h0m3s',dist='0h0m5s')
+	#25,29,33
+	x.second_order_match(i,distPS='0h0m3s',dist='0h0m3s')
 
-# print('Sampedro_n2 X Pan-STARRS X 5\"')
-# x.sampedro_match(2,dist='0h0m5s')
-# print('Sampedro_n2 X Pan-STARRS X 3\"')
-# x.sampedro_match(2,dist='0h0m3s')
-# print('Sampedro_n3 X Pan-STARRS X 5\"')
-# x.sampedro_match(3,dist='0h0m5s')
-# print('Sampedro_n3 X Pan-STARRS X 3\"')
-# x.sampedro_match(3,dist='0h0m3s')
+# for i in range(1,4):
+#     #34,35,36
+#     x.second_order_match(i,distPS='0h0m10s',dist='0h0m10s')
+#     #34,35,36
+#     x.second_order_match(i,distPS='0h0m5s',dist='0h0m5s')
 # 
-# print('Sampedro_n0 X K2MASS X 5\"')
-# x.sampedro_match(0,dist='0h0m5s', cat='K2MASS')
-# print('Sampedro_n0 X K2MASS X 3\"')
-# x.sampedro_match(0,dist='0h0m3s', cat='K2MASS')
-# print('Sampedro_n1 X K2MASS X 5\"')
-# x.sampedro_match(1,dist='0h0m5s', cat='K2MASS')
-# print('Sampedro_n1 X K2MASS X 3\"')
-# x.sampedro_match(1,dist='0h0m3s', cat='K2MASS')
-# print('Sampedro_n2 X K2MASS X 5\"')
-# x.sampedro_match(2,dist='0h0m5s', cat='K2MASS')
-# print('Sampedro_n2 X K2MASS X 3\"')
-# x.sampedro_match(2,dist='0h0m3s', cat='K2MASS')
-# print('Sampedro_n3 X K2MASS X 5\"')
-# x.sampedro_match(3,dist='0h0m5s', cat='K2MASS')
-# print('Sampedro_n3 X K2MASS X 3\"')
-# x.sampedro_match(3,dist='0h0m3s', cat='K2MASS')
 
+# print('Here\'s the best choice: ')
+# A=x.sampedro_match(1,dist='0h0m3s',cat='K2MASS')
+# results=[]
+# # #print(A)
+# results=[i for j, i in enumerate(x.K2MASS[0]) if j in A]
+# print(results)
+#print(len(results))
