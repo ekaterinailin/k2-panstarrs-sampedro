@@ -76,19 +76,18 @@ class OpenCluster():
 		self.PS=self.loadcatalog(path, '_panstarrs_search.txt',(1,2,3),'\t',2 ,[('ID','i8'),('ra','U12'),('dec','U12')])
 		self.K2=self.loadcatalog(path, '_k2_search.txt',(0,4,5,21),'\t',2 ,[('ID','i8'),('ra','U12'),('dec','U12'),('2MASS','U12')])
 		
-		self.K2MASS=list(self.K2)
-		no2mass = ''
-		print(self.K2MASS[0][:10])
-		print(self.K2MASS[3][:10])
+		#create the subset of K2 LCs where also 2MASS IDs exist
+		#first of all copy the entire K2 list
+		self.K2MASS=list(self.K2) 
+		#empty string incidates there's no 2MASS ID
+		no2mass = '' 
+		#find all the rows where this string is found in the 2MASS ID column
 		no2mass_idx=[i for i, x in enumerate(self.K2MASS[3]) if x==no2mass]
-		print(self.K2MASS[0][:10])
-		print(self.K2MASS[3][:10])
-		self.K2MASS[0]=[i for j, i in enumerate(self.K2MASS[0]) if j not in no2mass_idx]
-		self.K2MASS[1]=[i for j, i in enumerate(self.K2MASS[1]) if j not in no2mass_idx]
-		self.K2MASS[2]=[i for j, i in enumerate(self.K2MASS[2]) if j not in no2mass_idx]
-		self.K2MASS[3]=[i for j, i in enumerate(self.K2MASS[3]) if j not in no2mass_idx]
-		print(self.K2MASS[0][:10])
-		print(self.K2MASS[3][:10])
+		
+		#remove all rows with objects with no 2MASS ID
+		for _ in range(len(K2.MASS)):
+			self.K2MASS[_]=[i for j, i in enumerate(self.K2MASS[_]) if j not in no2mass_idx]
+
 		return
 
 	def refinesampedro(self):
@@ -146,11 +145,11 @@ class OpenCluster():
 
 		return
 
-	def PS_sampedro_match(self, n, dist='0h0m3s'):
+	def sampedro_match(self, n, dist='0h0m3s', cat='Pan-STARRS'):
 
 		'''
 		
-		Matches Sampedro catalog with number n of membership approvals with Pan-STARRS catalog entries in a radius given in 'XhYmZs'.
+		Matches Sampedro catalog with a number (n) of membership approvals with catalog (cat) entries in a radius (dist) given in 'XhYmZs'.
 
 		Output:
 
@@ -160,8 +159,17 @@ class OpenCluster():
 		
 		sampedro=[self.sampedro_n0,self.sampedro_n1,self.sampedro_n2,self.sampedro_n3]
 		
-		ra2=Angle(self.PS[1],unit=u.deg)
-		dec2=Angle(self.PS[2],unit=u.deg)
+		if cat=='Pan-STARRS':
+			l=self.PS	
+		elif cat == 'K2MASS':
+			l=self.K2MASS
+		else:
+			print('This is not a valid catalog chiffre. I\'ll use Pan-STARRS.')
+			l=self.PS
+		
+		ra2=Angle(l[1],unit=u.deg)
+		dec2=Angle(l[2],unit=u.deg)
+			
 		ra3=Angle(sampedro[n][1],u.deg) 
 		dec3=Angle(sampedro[n][2],u.deg)
 
@@ -179,38 +187,6 @@ class OpenCluster():
 	
 		return match_idx
 
-	def K2_sampedro_match(self, n, dist='0h0m3s'):
-
-		'''
-		
-		Matches Sampedro catalog with number n of membership approvals with K2 catalog entries with an associated 2MASS ID in a radius given in 'XhYmZs'.
-
-		Output:
-
-		match_idx: list - indices of objects in K2/2MASS that match with object positions in Sampedro cluster list 
-
-		'''
-		
-		sampedro=[self.sampedro_n0,self.sampedro_n1,self.sampedro_n2,self.sampedro_n3]
-		
-		ra2=Angle(self.K2[1],unit=u.deg)
-		dec2=Angle(self.K2[2],unit=u.deg)
-		ra3=Angle(sampedro[n][1],u.deg) 
-		dec3=Angle(sampedro[n][2],u.deg)
-
-		#assume ra1/dec1 and ra/dec2 are arrays loaded from some file
-		
-		c = ICRS(ra=ra3, dec=dec3)#c=cluster stars from Sampedro
-		catalog = ICRS(ra=ra2, dec=dec2)#catalog=panstarrs has all the parameters
-
-		#match Sampedro cluster members with Pan-STARRS
-		
-		idx, d2d, d3d = match_coordinates_sky(c, catalog) #idx are indices into catalog that are the closest objects to each of the coordinates in c
-		match_idx=are_within_bounds(d2d,'0h0m0s', dist)
-		
-		print(len(match_idx))
-	
-		return match_idx
 
 #General purpose funcs:
 
@@ -231,19 +207,31 @@ def are_within_bounds(arr, min_angle, max_angle):
 x=OpenCluster('Ruprecht 147','Ruprecht_147', 30, 2.5)
 x.loadcatalogs()
 x.refinesampedro()
+# print(x.sampedro_n0[1][:10])
+# x.PS_sampedro_match(0)
+# x.PS_sampedro_match(0,dist='0h0m5s')
+# print(x.sampedro_n1[1][:10])
+# x.PS_sampedro_match(1)
+# x.PS_sampedro_match(1,dist='0h0m5s')
+# print(x.sampedro_n2[1][:10])
+# x.PS_sampedro_match(2)
+# x.PS_sampedro_match(2,dist='0h0m5s')
+# print(x.sampedro_n3[1][:10])
+# x.PS_sampedro_match(3)
+# x.PS_sampedro_match(3,dist='0h0m5s')
+
 print(x.sampedro_n0[1][:10])
 x.PS_sampedro_match(0)
-x.PS_sampedro_match(0,dist='0h0m5s')
+x.PS_sampedro_match(0,dist='0h0m5s', cat='K2MASS')
 print(x.sampedro_n1[1][:10])
 x.PS_sampedro_match(1)
-x.PS_sampedro_match(1,dist='0h0m5s')
+x.PS_sampedro_match(1,dist='0h0m5s', cat='K2MASS')
 print(x.sampedro_n2[1][:10])
 x.PS_sampedro_match(2)
-x.PS_sampedro_match(2,dist='0h0m5s')
+x.PS_sampedro_match(2,dist='0h0m5s', cat='K2MASS')
 print(x.sampedro_n3[1][:10])
 x.PS_sampedro_match(3)
-x.PS_sampedro_match(3,dist='0h0m5s')
-
+x.PS_sampedro_match(3,dist='0h0m5s', cat='K2MASS')
 
 
 # print(type(K2['2MASS']))
