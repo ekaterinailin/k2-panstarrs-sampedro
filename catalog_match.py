@@ -85,7 +85,7 @@ class OpenCluster():
 		no2mass_idx=[i for i, x in enumerate(self.K2MASS[3]) if x==no2mass]
 		
 		#remove all rows with objects with no 2MASS ID
-		for _ in range(len(K2.MASS)):
+		for _ in range(len(self.K2MASS)):
 			self.K2MASS[_]=[i for j, i in enumerate(self.K2MASS[_]) if j not in no2mass_idx]
 
 		return
@@ -187,6 +187,47 @@ class OpenCluster():
 	
 		return match_idx
 
+	def second_match(self, match_idx_PS, dist='0h0m3s'):
+
+		'''
+		
+		Matching K2 and Pan-STARRS (conditional on Sampedro cluster membership).
+		
+		'''
+
+		lK2=list(self.K2)
+		lPS=list(self.PS)
+		idx_K2=list(range(len(lK2[0])))
+		print('K2 object list has '+ str(len(idx_K2))+ ' LCs.')
+
+		for _ in range(len(self.K2)):
+			lK2[_]= [i for j, i in enumerate(lK2[_]) if j in idx_K2]
+
+		for _ in range(len(self.PS)):
+			lPS[_]= [i for j, i in enumerate(lPS[_]) if j in match_idx_PS]
+
+		print('From the ' + self.name + ' members as assessed by Sampedro ' + str(len(lPS[0])) + ' have an Pan-STARRS ID.')
+		ra2=Angle(lK2[1],unit=u.deg)
+		dec2=Angle(lK2[2],unit=u.deg)
+			
+		ra3=Angle(lPS[1],u.deg) 
+		dec3=Angle(lPS[2],u.deg)
+
+		#assume ra1/dec1 and ra/dec2 are arrays loaded from some file
+		
+		c = ICRS(ra=ra3, dec=dec3)#c=cluster stars from Pan-STARRS
+		catalog = ICRS(ra=ra2, dec=dec2)#catalog=K2 is where I need LCs to exist
+
+		#match Sampedro cluster members with Pan-STARRS
+		
+		idx, d2d, d3d = match_coordinates_sky(c, catalog) #idx are indices into catalog that are the closest objects to each of the coordinates in c
+		second_match_idx=are_within_bounds(d2d,'0h0m0s', dist)
+		
+		print('Of these two list ' + str(len(second_match_idx)) + ' do have Pan-STARRS IDs AND K2 LCs in the cluster within respective separations ' + dist + '.')
+	
+		return second_match_idx
+
+
 
 #General purpose funcs:
 
@@ -207,78 +248,43 @@ def are_within_bounds(arr, min_angle, max_angle):
 x=OpenCluster('Ruprecht 147','Ruprecht_147', 30, 2.5)
 x.loadcatalogs()
 x.refinesampedro()
-# print(x.sampedro_n0[1][:10])
-# x.PS_sampedro_match(0)
-# x.PS_sampedro_match(0,dist='0h0m5s')
-# print(x.sampedro_n1[1][:10])
-# x.PS_sampedro_match(1)
-# x.PS_sampedro_match(1,dist='0h0m5s')
-# print(x.sampedro_n2[1][:10])
-# x.PS_sampedro_match(2)
-# x.PS_sampedro_match(2,dist='0h0m5s')
-# print(x.sampedro_n3[1][:10])
-# x.PS_sampedro_match(3)
-# x.PS_sampedro_match(3,dist='0h0m5s')
-
-print(x.sampedro_n0[1][:10])
-x.PS_sampedro_match(0)
-x.PS_sampedro_match(0,dist='0h0m5s', cat='K2MASS')
-print(x.sampedro_n1[1][:10])
-x.PS_sampedro_match(1)
-x.PS_sampedro_match(1,dist='0h0m5s', cat='K2MASS')
-print(x.sampedro_n2[1][:10])
-x.PS_sampedro_match(2)
-x.PS_sampedro_match(2,dist='0h0m5s', cat='K2MASS')
-print(x.sampedro_n3[1][:10])
-x.PS_sampedro_match(3)
-x.PS_sampedro_match(3,dist='0h0m5s', cat='K2MASS')
 
 
-# print(type(K2['2MASS']))
-# #refine K2 list by 2MASS condition
-# TwoMASS=K2['2MASS']
-# print(TwoMASS[:10])
-# x=np.where(TwoMASS=='')
-# print(len(TwoMASS))
-# print(len(x[0]))
-# x=np.where(TwoMASS!='')
-# print(len(x[0]))
+#print('Sampedro_n0 X Pan-STARRS X 5\"')
+#x.sampedro_match(0,dist='0h0m5s')
+#print('Sampedro_n0 X Pan-STARRS X 3\"')
+A=x.sampedro_match(0,dist='0h0m3s')
+#print('Sampedro_n1 X Pan-STARRS X 5\"')
+#x.sampedro_match(1,dist='0h0m5s')
+#print('Sampedro_n1 X Pan-STARRS X 3\"')
+#B=x.sampedro_match(1,dist='0h0m3s')
+
+x.second_match(A)
+#x.second_match(B)
+
+# print('Sampedro_n2 X Pan-STARRS X 5\"')
+# x.sampedro_match(2,dist='0h0m5s')
+# print('Sampedro_n2 X Pan-STARRS X 3\"')
+# x.sampedro_match(2,dist='0h0m3s')
+# print('Sampedro_n3 X Pan-STARRS X 5\"')
+# x.sampedro_match(3,dist='0h0m5s')
+# print('Sampedro_n3 X Pan-STARRS X 3\"')
+# x.sampedro_match(3,dist='0h0m3s')
 # 
-# 
-# #convert ra/dec into ICRS format
-# ra1=Angle(K2['ra'],unit=u.deg)
-# dec1=Angle(K2['dec'],unit=u.deg)
-# ra2=Angle(PS['ra'],unit=u.deg)
-# dec2=Angle(PS['dec'],unit=u.deg)
-# ra3=Angle(SOC['ra']-270.0,u.deg) #weird coordinates...
-# dec3=Angle(SOC['dec'],u.deg)
-# 
-# #assume ra1/dec1 and ra/dec2 are arrays loaded from some file
-# c = ICRS(ra=ra3, dec=dec3)#c=cluster stars from Sampedro
-# catalog = ICRS(ra=ra2, dec=dec2)#catalog=panstarrs has all the parameters
-# k2_list=ICRS(ra=ra1, dec=dec1)
-# 
-# 
-# #match Sampedro cluster members with Pan-STARRS
-# idx, d2d, d3d = match_coordinates_sky(c, catalog) #idx are indices into catalog that are the closest objects to each of the coordinates in c
-# #match Sampedro cluster members with K2 conditional on 2MASS
-# idx2, d2d2, d3d2 = match_coordinates_sky(c, k2_list) #idx are indices into catalog that are the closest objects to each of the coordinates in c
-
-
-#Find the closest object within 3 arcsec (following Huber et al (2016) for their matching procedure
-#print(are_within_bounds(d2d,'0h0m0s', '0h0m30s'))
-#print(are_within_bounds(d2d,'0h0m0s', '0h0m20s'))
-#print(are_within_bounds(d2d,'0h0m0s', '0h0m10s'))
-#print(len(are_within_bounds(d2d,'0h0m0s', '0h0m05s')))
-#print(len(are_within_bounds(d2d,'0h0m0s', '0h0m03s')))
-#print(are_within_bounds(d2d2,'0h0m0s', '0h0m30s'))
-#print(are_within_bounds(d2d2,'0h0m0s', '0h0m20s'))
-#print(are_within_bounds(d2d2,'0h0m0s', '0h0m10s'))
-#print(len(are_within_bounds(d2d2,'0h0m0s', '0h0m05s')))
-#print(len(are_within_bounds(d2d2,'0h0m0s', '0h0m03s')))
-
-
-
-
-
+# print('Sampedro_n0 X K2MASS X 5\"')
+# x.sampedro_match(0,dist='0h0m5s', cat='K2MASS')
+# print('Sampedro_n0 X K2MASS X 3\"')
+# x.sampedro_match(0,dist='0h0m3s', cat='K2MASS')
+# print('Sampedro_n1 X K2MASS X 5\"')
+# x.sampedro_match(1,dist='0h0m5s', cat='K2MASS')
+# print('Sampedro_n1 X K2MASS X 3\"')
+# x.sampedro_match(1,dist='0h0m3s', cat='K2MASS')
+# print('Sampedro_n2 X K2MASS X 5\"')
+# x.sampedro_match(2,dist='0h0m5s', cat='K2MASS')
+# print('Sampedro_n2 X K2MASS X 3\"')
+# x.sampedro_match(2,dist='0h0m3s', cat='K2MASS')
+# print('Sampedro_n3 X K2MASS X 5\"')
+# x.sampedro_match(3,dist='0h0m5s', cat='K2MASS')
+# print('Sampedro_n3 X K2MASS X 3\"')
+# x.sampedro_match(3,dist='0h0m3s', cat='K2MASS')
 
