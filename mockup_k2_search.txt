@@ -1,22 +1,22 @@
 dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	
 dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	
-K2	dummy	dummy	dummy	17.63836743946476	26.185387581229794	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2	dummy	dummy	dummy	12.993911526665235	17.616226188742303	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2	dummy	dummy	dummy	10.086158480992133	25.413802079277474	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2	dummy	dummy	dummy	18.6989303091638	21.183594453526208	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2	dummy	dummy	dummy	24.888591336280115	15.929532473368283	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2	dummy	dummy	dummy	26.285847078345572	24.471923742594612	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2	dummy	dummy	dummy	21.725850451714006	15.46550975186267	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2MASS	dummy	dummy	dummy	27.89393380714618	19.85150147509408	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	1	
-K2MASS	dummy	dummy	dummy	21.30454479548437	15.099436145143342	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	1	
-K2	dummy	dummy	dummy	19.13126891168652	12.19524279805093	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2	dummy	dummy	dummy	24.869740409116055	28.32043783180669	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2	dummy	dummy	dummy	23.65700272648437	3.4290214946794038	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2	dummy	dummy	dummy	16.09994060276661	12.748304366605756	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2MASS	dummy	dummy	dummy	21.2705110120498	19.486995889386595	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	1	
-K2	dummy	dummy	dummy	17.704598478549272	23.117007856770808	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2	dummy	dummy	dummy	20.197374565238704	29.868017844544553	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2	dummy	dummy	dummy	12.64787541893238	23.744444444044454	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2MASS	dummy	dummy	dummy	18.8235499500396	18.521933575310705	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	1	
-K2	dummy	dummy	dummy	13.921614651443207	25.08616032638385	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
-K2MASS	dummy	dummy	dummy	21.08988679128925	20.468526938696943	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	1	
+K2	dummy	dummy	dummy	25.213756564330478	22.801762838794026	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2MASS	dummy	dummy	dummy	29.264365679873773	18.384793004501624	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	1	
+K2	dummy	dummy	dummy	30.457586493199642	15.147398018378109	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2	dummy	dummy	dummy	19.357221506953838	24.38061810966224	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2	dummy	dummy	dummy	22.45717955036824	22.847878386723842	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2	dummy	dummy	dummy	21.119470393488996	21.892471410047456	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2	dummy	dummy	dummy	20.026183282067286	15.615996590736751	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2MASS	dummy	dummy	dummy	16.340917873007587	17.892135520638902	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	1	
+K2	dummy	dummy	dummy	29.210744491516863	26.47347370568974	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2	dummy	dummy	dummy	16.73031452883219	22.090662566550193	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2MASS	dummy	dummy	dummy	27.357045245054024	22.04633720204573	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	1	
+K2	dummy	dummy	dummy	20.057413672732324	19.183505625690717	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2	dummy	dummy	dummy	22.110364855762658	16.695887737862815	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2	dummy	dummy	dummy	14.963318252933052	22.539408833623867	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2	dummy	dummy	dummy	20.601246266856577	15.181420047879143	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2	dummy	dummy	dummy	8.96965056913171	25.71457381887692	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2	dummy	dummy	dummy	21.675674920769733	22.376048422553435	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2	dummy	dummy	dummy	22.488752962700797	24.194623438874665	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy		
+K2MASS	dummy	dummy	dummy	25.156265463045617	17.143083333350674	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	1	
+K2MASS	dummy	dummy	dummy	20.395801843488808	28.418736102340908	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	dummy	1	

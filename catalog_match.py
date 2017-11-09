@@ -49,18 +49,18 @@ class OpenCluster():
 				m1=cat['M1'].tolist()
 				m2=cat['M2'].tolist()
 				m3=cat['M3'].tolist()
-				
+				#print([ID,ra,dec,m1,m2,m3])
 				return [ID,ra,dec,m1,m2,m3]
 			
 		
 			elif ('2MASS') in cat.dtype.names: 
 
 				Twomass=cat['2MASS'].tolist()
-			
+				#print([ID,ra,dec,Twomass])
 				return [ID,ra,dec,Twomass]
 			
 			else:
-				
+				#print([ID,ra,dec])
 				return [ID,ra,dec]
 
 		else: 
@@ -77,7 +77,7 @@ class OpenCluster():
 		
 		print('Currently working in \"' + os.getcwd()+ '\"')
 
-		self.sampedro_n0=self.loadcatalog(path,'_Sampedro_cluster_members_query.csv',(2,3,5,57,58,59),',',1 ,[('ID','U10'),('ra','f8'),('dec','f8'),('M1','b'),('M2','b'),('M3','b')])
+		self.sampedro_n0=self.loadcatalog(path,'_Sampedro_cluster_members_query.csv',(2,3,5,57,58,59),'\t',1 ,[('ID','U10'),('ra','f8'),('dec','f8'),('M1','b'),('M2','b'),('M3','b')])
 		#workaround for weird RA in Sampedro...:
 		self.sampedro_n0[1]=[x - 270.0 for x in self.sampedro_n0[1]] #weird coordinates...
 		self.PS=self.loadcatalog(path, '_panstarrs_search.txt',(1,2,3),'\t',2 ,[('ID','i8'),('ra','U12'),('dec','U12')])
@@ -287,7 +287,7 @@ def are_within_bounds(idx,d2d, min_angle, max_angle):
 
 #Wrapping it:
 
-x=OpenCluster('Ruprecht 147','Ruprecht_147', radius=30, age=2.5)
+x=OpenCluster('mockup','mockup', radius=30, age=2.5)
 x.loadcatalogs()
 x.refinesampedro()
 
