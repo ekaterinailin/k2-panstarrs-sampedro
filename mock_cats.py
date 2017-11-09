@@ -14,21 +14,18 @@ def mock_wrap(size=1,dist=3):
 	Main wrapper for catalog mockup creation.
 
 	'''
+	#The size of the mockup cat should be div'able into fractions down to 5%:
 	size=int(size)*20
 	#Mock a K2 catalog list of 1*size including 0.25*size 2MASS IDs
-	#Hand over 0.1*size matches from K2MASS to Sampedro
+	#and hand over 0.1*size matches from K2MASS to Sampedro:
 	k2,twomass_sampedro_match_idx=mock_k2(size)
-	print('K2:')
-	for i in range(len(k2)): print(k2[i]['ID'])
+	IDprint(k2, catname='K2')	
 	#Mock a Pan-STARRS list of 2*size with 0.5*size matching K2
 	ps=mock_panstarrs(size,k2,dist)
-	print('PS:')	
-	for i in range(len(ps)): print(ps[i]['ID'])
+	IDprint(ps, catname='Pan-STARRS')
 	#Mock a Sampedro list of 2*size with 0.1*size matching K2MASS, 	
-	smp, match=mock_sampedro(size,k2,ps,twomass_sampedro_match_idx,dist)
-	print('SMP:')	
-	for i in range(len(smp)): print(smp[i]['ID'])
-	#write catalogs to .txt or .csv files
+	smp=mock_sampedro(size,k2,ps,twomass_sampedro_match_idx,dist)
+	IDprint(smp, catname='Sampedro')
 
 
 def mock_k2(size):
@@ -40,7 +37,7 @@ def mock_k2(size):
 	'''
 	
 	#tabseparated
-	#28 columns 0,4,5,21 for ID, ra, dec, 2mass
+	#28 columns (0,4,5,21) for ID, ra, dec, 2mass
 	#example:
 	#219622634	19.277982	-16.278071	19164073-1616411
 	#first two rows occupied
@@ -56,20 +53,11 @@ def mock_k2(size):
 			tm=''
 			ID='K2'
 		l.append({"ID": ID, "ra": rnd.gauss(20.,5.), "dec":rnd.gauss(20.,5.), "twomass":tm})
-		#print(l[_]['ID'])
 
-	out=open('mockup_k2_search.txt','w')
-	dummy='dummy\t'	
-	dummymap=(dummy*28+'\n'+ dummy*28)
-	out.write(dummymap)
-	for item in l:
-		out.write('\n'+str(item['ID'])+'\t'+dummy*3+str(item['ra'])+'\t'+str(item['dec'])+'\t' + dummy*15+str(item['twomass'])+'\t'+dummy*6)
-	out.close()	
 	
+	writecat(l,(0,4,5,21),name='mockup_k2_search.txt',tag='k2')
 	#pick matches for Sampedro from those objects with 2MASS ID (40%)
 	twomass_sampedro_match_idx=twomass_idx[:int(len(twomass_idx)*0.4)]
-	#print(twomass_idx)
-	#print(twomass_sampedro_match_idx)
 
 	return l,twomass_sampedro_match_idx
 
@@ -80,6 +68,7 @@ def mock_sampedro(size,k2,ps,twomass_sampedro_match_idx, dist):
 	Mocks a Sampedro catalog list.
 
 	'''
+	
 	#ID, ra, dec, M1, M2, M3
 	l=[]
 	
@@ -102,18 +91,9 @@ def mock_sampedro(size,k2,ps,twomass_sampedro_match_idx, dist):
 	while len(l)<2*size:
 		l.append({"ID": 'Sampedro', "ra": rnd.gauss(25.,5.), "dec":rnd.gauss(25.,5.), "M1":np.random.choice((0,1)),"M2":np.random.choice((0,1)),"M3":np.random.choice((0,1))})	
 
-	sampedro_k2_match_idx=l[k2_match_start:k2_match_finish]
-	print(len(sampedro_k2_match_idx))
 
-	out=open('mockup_Sampedro_cluster_members_query.csv','w')
-	#(2,3,5,57,58,59)
-	dummy='dummy\t'	
-	out.write(dummy*59)
-	for item in l:
-		out.write('\n'+dummy*2+str(item['ID'])+'\t'+str(item['ra'])+'\t'+dummy+str(item['dec'])+'\t' + dummy*51+str(item['M1'])+'\t'+str(item['M2'])+'\t'+str(item['M3']))
-	out.close()	
-
-	return l, sampedro_k2_match_idx
+	writecat(l,(2,3,5,57,58,59),skiprows=1,name='mockup_Sampedro_cluster_members_query.csv',tag='smp')
+	return l
 
 def mock_panstarrs(size, k2,dist):
 	
@@ -133,16 +113,56 @@ def mock_panstarrs(size, k2,dist):
 		
 		l.append({"ID": 'PS', "ra": rnd.gauss(20.,5.), "dec":rnd.gauss(20.,5.)})
 		#print(l[_]['ID'])
+	writecat(l,(1,2,3),name='mockup_panstarrs_search.txt',tag='ps')
 
-	out=open('mockup_panstarrs_search.txt','w')
-	dummy='dummy\t'	
-	dummymap=(dummy*4+'\n'+dummy*4)
-	out.write(dummymap)
-	for item in l:
-		out.write('\n'+dummy+str(item['ID'])+'\t'+str(item['ra'])+'\t'+str(item['dec']))
-	out.close()	
 	
 	return l
+
+def IDprint(cat, catname='Unknown'):
+	print(catname+':')
+	for i in range(len(cat)): print(cat[i]['ID'])
+
+
+def writecat(cat,usecols,skiprows=2,name='mockup_unknown.txt', tag='unknown'):
+	
+	'''
+
+	Writes out calatogs into dummy files.
+
+	'''
+	#Make a copy of catalog for printing, so you can shuffle it a bit without intefering with the rest of the code:
+	printcat=list(cat)	
+	rnd.shuffle(printcat)
+	#Create output file
+	out=open(name,'w')
+	#Create a dummy entry to fill up remaining rows and columns
+	dummy='dummy\t'	
+	numcols=usecols[-1]+1
+	#write the skipped rows
+	dummymap=dummy*numcols
+	for i in range(1,skiprows): dummymap+='\n'+dummy*numcols
+	out.write(dummymap)
+	#check specific catalog
+	if tag=='k2': dicttag=['ID','ra','dec','twomass']
+	elif tag=='ps': dicttag=['ID','ra','dec']
+	elif tag=='smp': dicttag=['ID','ra','dec','M1','M2','M3']
+	else: print('Use a valid tag.')
+	#create line to write in file and write it
+	for item in printcat:
+		catline='\n'
+		inkr=0
+		for i in range(numcols):
+			
+			if i in usecols:
+				catline+=str(item[dicttag[inkr]])+'\t'
+				inkr+=1
+			else: 
+				catline+=dummy
+		out.write(catline)
+	out.close()
+	return
+	
+	
 #WRAP!
 mock_wrap()
 
