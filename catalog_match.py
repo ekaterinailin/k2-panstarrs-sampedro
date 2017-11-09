@@ -12,18 +12,25 @@ class OpenCluster():
 	Open cluster class.
 	'''
 
-	def __init__(self, name, sampedro_name, radius, age):
+	def __init__(self, name, sampedro_name, radius=0., age=0.):
 		
+		#prompt and file specific cluster name
 		self.name=name
 		self.sampedro_name=sampedro_name
+		#radius in acrmin
 		self.radius=radius
+		#age in Gyr
 		self.age=age
+		#subcats with different numbers of membership allocations
 		self.sampedro_n0=[]
 		self.sampedro_n1=[]
 		self.sampedro_n2=[]
 		self.sampedro_n3=[]
+		#Pan-STARRS catalog
 		self.PS=[]
+		#K2 search for the cluster 
 		self.K2=[]
+		#
 		self.K2MASS=[]
 	
 	def loadcatalog(self,path,ext,usecols,delimiter, skip_header, dtype):
@@ -280,7 +287,7 @@ def are_within_bounds(idx,d2d, min_angle, max_angle):
 
 #Wrapping it:
 
-x=OpenCluster('Ruprecht 147','Ruprecht_147', 30, 2.5)
+x=OpenCluster('Ruprecht 147','Ruprecht_147', radius=30, age=2.5)
 x.loadcatalogs()
 x.refinesampedro()
 
