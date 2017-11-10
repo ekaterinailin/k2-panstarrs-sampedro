@@ -83,13 +83,8 @@ class OpenCluster():
 
 		self.sampedro_n0=self.loadcatalog(path,'_Sampedro_cluster_members_query.csv',(2,3,5,57,58,59),'\t',1 ,[('ID','U10'),('ra','f8'),('dec','f8'),('M1','b'),('M2','b'),('M3','b')])
 		#workaround for weird RA in Sampedro...:
-		if self.name=='M67': 
-			ra_shift=124.0
-		elif self.name=='Ruprecht 147': 
-			ra_shift=270.0
-		else: 
-			ra_shift=0
-		self.sampedro_n0[1]=[x - ra_shift for x in self.sampedro_n0[1]] #weird coordinates...
+		ra_shift={'M67': 124.0, 'Ruprecht 147':270.,'M44':121.0,'mockup':0.}
+		self.sampedro_n0[1]=[x - ra_shift[self.name] for x in self.sampedro_n0[1]] #weird coordinates...
 		self.PS=self.loadcatalog(path, '_panstarrs_search.txt',(1,2,3),'\t',2 ,[('ID','i8'),('ra','U12'),('dec','U12')])
 		self.K2=self.loadcatalog(path, '_k2_search.txt',(0,4,5,20),'\t',2 ,[('ID','i8'),('ra','U12'),('dec','U12'),('2MASS','U12')])
 		
@@ -341,9 +336,9 @@ def are_within_bounds(idx,d2d, min_angle, max_angle):
 
 mocktest()
 inputs=[]
-inputs.append(['M67','M67', 15, 4.0])
-inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5])
-
+#inputs.append(['M67','M67', 15, 4.0])
+#inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5])
+inputs.append(['M44','M44', 47, 0.73])
 
 
 for item in inputs:
