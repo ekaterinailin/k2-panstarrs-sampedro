@@ -7,7 +7,7 @@ import numpy as np
 import os
 import sys
 
-def mock_wrap(size=1,dist=10):
+def mock_wrap(size=1,dist=3):
 
 	'''
 
@@ -37,7 +37,7 @@ def mock_k2(size):
 	'''
 	
 	#tabseparated
-	#28 columns (0,4,5,21) for ID, ra, dec, 2mass
+	#28 columns (0,4,5,20) for ID, ra, dec, 2mass
 	#example:
 	#219622634	19.277982	-16.278071	19164073-1616411
 	#first two rows occupied
@@ -55,7 +55,7 @@ def mock_k2(size):
 		l.append({"ID": ID, "ra": rnd.gauss(20.,5.), "dec":rnd.gauss(20.,5.), "twomass":tm})
 
 	
-	writecat(l,(0,4,5,21),name='mockup_k2_search.txt',tag='k2')
+	writecat(l,(0,4,5,20),name='mockup_k2_search.txt',tag='k2')
 	#pick matches for Sampedro from those objects with 2MASS ID (40%)
 	twomass_sampedro_match_idx=twomass_idx[:int(len(twomass_idx)*0.4)]
 
@@ -78,7 +78,7 @@ def mock_sampedro(size,k2,ps,twomass_sampedro_match_idx, dist):
 		approx_ra=float(k2[item]['ra'])+rnd.uniform(0.,dist/3600.)
 		approx_dec=float(k2[item]['dec'])+rnd.uniform(0.,dist/3600.)
 		#l.append({"ID": 'K2MASS+Sampedro', "ra": approx_ra, "dec":approx_dec, "M1":np.random.choice((0,1)),"M2":np.random.choice((0,1)),"M3":np.random.choice((0,1))})
-		l.append({"ID": 'K2MASS+Sampedro', "ra": approx_ra+270., "dec":approx_dec, "M1":1,"M2":1,"M3":1})
+		l.append({"ID": 'K2MASS+Sampedro', "ra": approx_ra, "dec":approx_dec, "M1":1,"M2":1,"M3":1})
 
 	k2_match_start=len(l)
 
@@ -96,7 +96,7 @@ def mock_sampedro(size,k2,ps,twomass_sampedro_match_idx, dist):
 
 	while len(l)<2*size:
 		#l.append({"ID": 'Sampedro', "ra": rnd.gauss(25.,5.), "dec":rnd.gauss(25.,5.), "M1":np.random.choice((0,1)),"M2":np.random.choice((0,1)),"M3":np.random.choice((0,1))})	
-		l.append({"ID": 'Sampedro', "ra": rnd.gauss(25.,5.)+270., "dec":rnd.gauss(25.,5.), "M1":1,"M2":1,"M3":1})
+		l.append({"ID": 'Sampedro', "ra": rnd.gauss(25.,5.), "dec":rnd.gauss(25.,5.), "M1":1,"M2":1,"M3":1})
 
 
 	writecat(l,(2,3,5,57,58,59),skiprows=1,name='mockup_Sampedro_cluster_members_query.csv',tag='smp')
@@ -208,7 +208,7 @@ def fillcat(l,cat,size,dist,frac=0.25,ID='ID'):
 		approx_dec=float(cat[i]['dec'])+rnd.uniform(0.,dist/3600.)
 		if ID=='K2/Pan-STARRS+Sampedro':
 			#l.append({"ID": ID, "ra": approx_ra, "dec":approx_dec, "M1":np.random.choice((0,1)),"M2":np.random.choice((0,1)),"M3":np.random.choice((0,1))})	
-			l.append({"ID": ID, "ra": approx_ra+270., "dec":approx_dec, "M1":1,"M2":1,"M3":1})		
+			l.append({"ID": ID, "ra": approx_ra, "dec":approx_dec, "M1":1,"M2":1,"M3":1})		
 		elif ID=='PS+K2':
 			l.append({"ID": ID, "ra": approx_ra, "dec":approx_dec})
 
