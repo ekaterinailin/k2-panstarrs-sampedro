@@ -337,8 +337,8 @@ def are_within_bounds(idx,d2d, min_angle, max_angle):
 mocktest()
 inputs=[]
 #inputs.append(['M67','M67', 15, 4.0])
-#inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5])
-inputs.append(['M44','M44', 47, 0.73])
+inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5])
+#inputs.append(['M44','M44', 47, 0.73])
 
 
 for item in inputs:
@@ -347,8 +347,10 @@ for item in inputs:
 	x.loadcatalogs()
 	print('\nMatching catalogs for ' + x.name + ':\n')
 	x.refinesampedro()
-	out=open('results/'+item[1]+'_results.txt', 'w')
+	out=open('results/'+item[1]+'_IDs.txt', 'w')
+	ids=open('results/'+item[1]+'_results.txt', 'w')
 	out.write(str(len(x.sampedro_n0[0]))+'\n'+str(len(x.sampedro_n1[0]))+'\n'+str(len(x.sampedro_n2[0]))+'\n'+str(len(x.sampedro_n3[0]))+'\n'+str(len(x.PS[0]))+'\n'+str(len(x.K2[0]))+'\n')
+	#all line numbers +2 in parameters sheet
 	for i in range(1,4):
 		#10
 		l, length=x.sampedro_match(i,dist='0h0m5s',cat='Pan-STARRS')
@@ -362,6 +364,7 @@ for item in inputs:
 		out.write(length+'\n')
 		#17,19,21     
 		l, length=x.sampedro_match(i,dist='0h0m3s',cat='K2MASS')
+		ids.write(l)
 		out.write(length+'\n')
 	for i in range(1,4):
 		#22,26,30
