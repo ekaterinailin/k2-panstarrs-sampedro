@@ -41,7 +41,7 @@ class OpenCluster():
 
 		if find(catfile,path):
 		
-			cat=np.genfromtxt(catfile ,delimiter=delimiter,skip_header=skip_header,usecols=usecols,dtype=dtype)
+			cat=np.genfromtxt('cats/'+catfile ,delimiter=delimiter,skip_header=skip_header,usecols=usecols,dtype=dtype)
 			ra=cat['ra'].tolist()
 			dec=cat['dec'].tolist()
 			ID=cat['ID'].tolist()
@@ -347,7 +347,7 @@ for item in inputs:
 	x.loadcatalogs()
 	print('\nMatching catalogs for ' + x.name + ':\n')
 	x.refinesampedro()
-	out=open(item[1]+'_results.txt', 'w')
+	out=open('results/'+item[1]+'_results.txt', 'w')
 	out.write(str(len(x.sampedro_n0[0]))+'\n'+str(len(x.sampedro_n1[0]))+'\n'+str(len(x.sampedro_n2[0]))+'\n'+str(len(x.sampedro_n3[0]))+'\n'+str(len(x.PS[0]))+'\n'+str(len(x.K2[0]))+'\n')
 	for i in range(1,4):
 		#10
