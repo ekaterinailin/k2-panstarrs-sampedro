@@ -204,6 +204,7 @@ class OpenCluster():
 			#idx are indices into catalog that are the closest objects to each of the coordinates in c
 			idx, d2d, d3d = match_coordinates_sky(c,catalog) 
 			match_idx=are_within_bounds(idx,d2d,'0h0m0s', dist)
+			match_idx=[i for j, i in enumerate(self.K2MASS[0]) if j in match_idx]
 			#print('Sampedro_n' + str(n) + ' X ' + cat + ' X ' + dist + ': ' + str(len(match_idx)) + ' matching objects.')
 		
 		except ValueError:
@@ -336,9 +337,9 @@ def are_within_bounds(idx,d2d, min_angle, max_angle):
 
 mocktest()
 inputs=[]
-#inputs.append(['M67','M67', 15, 4.0])
+inputs.append(['M67','M67', 15, 4.0])
 inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5])
-#inputs.append(['M44','M44', 47, 0.73])
+inputs.append(['M44','M44', 47, 0.73])
 
 
 for item in inputs:
@@ -347,35 +348,41 @@ for item in inputs:
 	x.loadcatalogs()
 	print('\nMatching catalogs for ' + x.name + ':\n')
 	x.refinesampedro()
-	out=open('results/'+item[1]+'_IDs.txt', 'w')
-	ids=open('results/'+item[1]+'_results.txt', 'w')
+	out=open('results/'+item[1]+'_results.txt', 'w')
+	ids=open('share/'+item[1]+'_IDs.txt', 'w')
 	out.write(str(len(x.sampedro_n0[0]))+'\n'+str(len(x.sampedro_n1[0]))+'\n'+str(len(x.sampedro_n2[0]))+'\n'+str(len(x.sampedro_n3[0]))+'\n'+str(len(x.PS[0]))+'\n'+str(len(x.K2[0]))+'\n')
 	#all line numbers +2 in parameters sheet
-	for i in range(1,4):
-		#10
-		l, length=x.sampedro_match(i,dist='0h0m5s',cat='Pan-STARRS')
-		out.write(length+'\n')
-		#11
-		l, length=x.sampedro_match(i,dist='0h0m3s',cat='Pan-STARRS')
-		out.write(length+'\n')
+#	for i in range(1,4):
+#		#10
+#		l, length=x.sampedro_match(i,dist='0h0m5s',cat='Pan-STARRS')
+#		out.write(length+'\n')
+#		#11
+#		l, length=x.sampedro_match(i,dist='0h0m3s',cat='Pan-STARRS')
+#		out.write(length+'\n')
 	for i in range(1,4):
 		#16,18,20
 		l, length=x.sampedro_match(i,dist='0h0m5s',cat='K2MASS')
 		out.write(length+'\n')
 		#17,19,21     
 		l, length=x.sampedro_match(i,dist='0h0m3s',cat='K2MASS')
-		ids.write(l)
+		if i==1:		
+			for item in l:
+				print(item)
+				ids.write(str(item)+'\n')
 		out.write(length+'\n')
-	for i in range(1,4):
-		#22,26,30
-		l, length=x.second_order_match(i,distPS='0h0m5s',dist='0h0m5s')
-		out.write(length+'\n')
-		#23,27,31
-		l, length=x.second_order_match(i,distPS='0h0m5s',dist='0h0m3s')
-		out.write(length+'\n')
-		#24,28,32
-		l, length=x.second_order_match(i,distPS='0h0m3s',dist='0h0m5s')
-		out.write(length+'\n')
-		#25,29,33
-		l, length=x.second_order_match(i,distPS='0h0m3s',dist='0h0m3s')
-		out.write(length+'\n')
+#	for i in range(1,4):
+#		#22,26,30
+#		l, length=x.second_order_match(i,distPS='0h0m5s',dist='0h0m5s')
+#		out.write(length+'\n')
+#		#23,27,31
+#		l, length=x.second_order_match(i,distPS='0h0m5s',dist='0h0m3s')
+#		out.write(length+'\n')
+#		#24,28,32
+#		l, length=x.second_order_match(i,distPS='0h0m3s',dist='0h0m5s')
+#		out.write(length+'\n')
+#		#25,29,33
+#		l, length=x.second_order_match(i,distPS='0h0m3s',dist='0h0m3s')
+#		out.write(length+'\n')
+
+	out.close()
+	ids.close()
