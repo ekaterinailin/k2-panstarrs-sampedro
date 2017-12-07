@@ -60,11 +60,6 @@ class OpenCluster():
 				dec=Angle(dec, unit=u.deg)
 				ra=ra.to_string(sep='dms',pad=True)
 				dec=dec.to_string(sep='dms',pad=True,)
-<<<<<<< HEAD
-=======
-				#print([ID,ra,dec,m1,m2,m3])
-				print(ra[:5],dec[:5])
->>>>>>> ce88648dc99c50e95c744c94b0568e083bce7b85
 				return [ID,ra,dec,m1,m2,m3]
 		
 			elif ('2MASS') in cat.dtype.names:
@@ -76,12 +71,7 @@ class OpenCluster():
 				return [ID,ra,dec,Twomass]
 			
 			else:
-<<<<<<< HEAD
-				for item in ra:
-					ra[ra.index(item)]='+'+item[:2]+'h'+item[3:5]+'m'+item[6:]+'s'
-				for item in dec:
-					dec[dec.index(item)]=item[:3]+'d'+item[4:6]+'m'+item[7:]+'s'
-=======
+
 				#for item in ra:
 				#	ra[ra.index(item)]='+'+item[:2]+'h'+item[3:5]+'m'+item[6:]+'s'
 				#for item in dec:
@@ -94,7 +84,7 @@ class OpenCluster():
 				ra=ra.to_string(sep='dms',pad=True)
 				dec=dec.to_string(sep='dms',pad=True,)
 				print(ra[:5],dec[:5])
->>>>>>> ce88648dc99c50e95c744c94b0568e083bce7b85
+
 				return [ID,ra,dec]
 
 		else: 
@@ -382,7 +372,7 @@ def are_within_bounds(idx,d2d, min_angle, max_angle,debug=False):
 #----------------------------------------------------------------------------------------
 
 
-def wrap(inputs,debug=False):
+def wrap_cross(inputs,debug=False):
 	for item in inputs:
 		
 		x=OpenCluster(item[0],item[1], radius=item[2], age=item[3])
@@ -409,9 +399,56 @@ def wrap(inputs,debug=False):
 		id2mass.close()
 		idcross.close()
 	return
+#----------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------
 
+def wrap_basic(inputs,debug=False):
+	for item in inputs:
+		
+		x=OpenCluster(item[0],item[1], radius=item[2], age=item[3])
+		x.loadcatalogs(debug=debug)
+		print('\nMatching catalogs for ' + x.name + ':\n')
+		x.refinesampedro(debug=debug)
+		out=open('share/'+item[1]+'_IDs.txt', 'w')
+		out.write(str(len(x.sampedro_n0[0]))+'\n'+str(len(x.sampedro_n1[0]))+'\n'+str(len(x.sampedro_n2[0]))+'\n'+str(len(x.sampedro_n3[0]))+'\n'+str(len(x.PS[0]))+'\n'+str(len(x.K2[0]))+'\n')
+		
 
-
+		#all line numbers +2 in parameters sheet
+		for i in range(1,4):
+			##10
+			l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m5s',cat='Pan-STARRS',debug=debug)
+			out.write(length+'\n')
+			##11
+			l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m3s',cat='Pan-STARRS',debug=debug)
+			out.write(length+'\n')
+		for i in range(1,4): 
+			##16,18,20
+			l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m5s',cat='K2MASS',debug=debug)
+			out.write(length+'\n')
+			##17,19,21
+			l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m3s',cat='K2MASS',debug=debug)
+			out.write(length+'\n')
+		
+			# if i==1:		
+			#     for item in ps:
+			#         ids.write(str(item)+'\n')
+		for i in range(1,4):
+			##22,26,30
+			l, ps, ra,dec,length=x.second_order_match(i,distPS='0d0m5s',dist='0d0m5s',debug=debug)
+			out.write(length+'\n')
+			##23,27,31
+			l, ps, ra,dec,length=x.second_order_match(i,distPS='0d0m5s',dist='0d0m3s',debug=debug)
+			out.write(length+'\n')
+			##24,28,32
+			l, ps, ra,dec,length=x.second_order_match(i,distPS='0d0m3s',dist='0d0m5s',debug=debug)
+			out.write(length+'\n')
+			##25,29,33
+			l, ps, ra,dec,length=x.second_order_match(i,distPS='0d0m3s',dist='0d0m3s',debug=debug)
+			out.write(length+'\n')
+			
+			#out.write(length+'\n')
+		out.close()
+	return
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 
@@ -422,38 +459,6 @@ inputs=[]
 #inputs.append(['M67','M67', 15, 4.0])
 #inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5])
 inputs.append(['M44','M44', 47, 0.73])
-wrap(inputs,debug=True)
+wrap_cross(inputs,debug=True)
 
-#DUMP
 
-		#all line numbers +2 in parameters sheet
-		#for i in range(1,2):
-			##10
-			#l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m5s',cat='Pan-STARRS',debug=debug)
-			#out.write(length+'\n')
-			##11
-			#l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m3s',cat='Pan-STARRS',debug=debug)
-			#out.write(length+'\n')
-		#for i in range(1,2): 
-			##16,18,20
-			#l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m5s',cat='K2MASS',debug=debug)
-			#out.write(length+'\n')
-			##17,19,21    
-        	
-		#for i in range(1,2):
-			##22,26,30
-			#l, ps, ra,dec,length=x.second_order_match(i,distPS='0d0m5s',dist='0d0m5s',debug=debug)
-			#out.write(length+'\n')
-			##23,27,31
-			#l, ps, ra,dec,length=x.second_order_match(i,distPS='0d0m5s',dist='0d0m3s',debug=debug)
-			#out.write(length+'\n')
-			##24,28,32
-			#l, ps, ra,dec,length=x.second_order_match(i,distPS='0d0m3s',dist='0d0m5s',debug=debug)
-			#out.write(length+'\n')
-			##25,29,33
-						#out.write(length+'\n')
-			#if i==1:		
-			#	for item in ps:
-		#			ids.write(str(item)+'\n')
-			#out.write(length+'\n')
-       
