@@ -57,6 +57,7 @@ class OpenCluster():
 				ra=ra.to_string(sep='dms',pad=True)
 				dec=dec.to_string(sep='dms',pad=True,)
 				#print([ID,ra,dec,m1,m2,m3])
+				print(ra[:5],dec[:5])
 				return [ID,ra,dec,m1,m2,m3]
 			
 		
@@ -71,11 +72,18 @@ class OpenCluster():
 				return [ID,ra,dec,Twomass]
 			
 			else:
-				for item in ra:
-					ra[ra.index(item)]='+'+item[:2]+'h'+item[3:5]+'m'+item[6:]+'s'
-				for item in dec:
-					dec[dec.index(item)]=item[:3]+'d'+item[4:6]+'m'+item[7:]+'s'
+				#for item in ra:
+				#	ra[ra.index(item)]='+'+item[:2]+'h'+item[3:5]+'m'+item[6:]+'s'
+				#for item in dec:
+				#	dec[dec.index(item)]=item[:3]+'d'+item[4:6]+'m'+item[7:]+'s'
 				#print([ID,ra,dec])
+				#ra=[float(x) for x in ra]
+				#dec=[float(x) for x in dec]
+				ra=Angle(ra,unit=u.deg)
+				dec=Angle(dec, unit=u.deg)
+				ra=ra.to_string(sep='dms',pad=True)
+				dec=dec.to_string(sep='dms',pad=True,)
+				print(ra[:5],dec[:5])
 				return [ID,ra,dec]
 
 		else: 
@@ -98,7 +106,8 @@ class OpenCluster():
 		dt = np.dtype([('ID', np.unicode_,21), ('ra', np.unicode_, 12), ('dec', np.unicode_, 11)])
 		#[('ID','i8'),('ra','U12'),('dec','U12')]
 		
-		self.PS=self.loadcatalog(path, '_panstarrs_search.txt',(1,2,3),'\t',2 ,dt,debug=debug)
+		#self.PS=self.loadcatalog(path, '_panstarrs_search.txt',(1,2,3),'\t',2 ,dt,debug=debug)
+		self.PS=self.loadcatalog(path, '_panstarrs_search.csv',(0,1,2),',',1 ,dt,debug=debug)
 		self.K2=self.loadcatalog(path, '_k2_search.txt',(0,4,5,20),'\t',2 ,[('ID','i8'),('ra','U12'),('dec','U12'),('2MASS','U12')],debug=debug)
 		
 		#create the subset of K2 LCs where also 2MASS IDs exist
@@ -418,7 +427,7 @@ def wrap(inputs,debug=False):
 
 inputs=[]
 #inputs.append(['M67','M67', 15, 4.0])
-inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5])
-#inputs.append(['M44','M44', 47, 0.73])
+#inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5])
+inputs.append(['M44','M44', 47, 0.73])
 wrap(inputs,debug=True)
 
