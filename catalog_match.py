@@ -72,17 +72,17 @@ class OpenCluster():
 			
 			else:
 
-				#for item in ra:
-				#	ra[ra.index(item)]='+'+item[:2]+'h'+item[3:5]+'m'+item[6:]+'s'
-				#for item in dec:
-				#	dec[dec.index(item)]=item[:3]+'d'+item[4:6]+'m'+item[7:]+'s'
+				for item in ra:
+					ra[ra.index(item)]='+'+item[:2]+'h'+item[3:5]+'m'+item[6:]+'s'
+				for item in dec:
+					dec[dec.index(item)]=item[:3]+'d'+item[4:6]+'m'+item[7:]+'s'
 				#print([ID,ra,dec])
-				#ra=[float(x) for x in ra]
-				#dec=[float(x) for x in dec]
-				ra=Angle(ra,unit=u.deg)
-				dec=Angle(dec, unit=u.deg)
-				ra=ra.to_string(sep='dms',pad=True)
-				dec=dec.to_string(sep='dms',pad=True,)
+				ra=[float(x) for x in ra]
+				dec=[float(x) for x in dec]
+				#ra=Angle(ra,unit=u.deg)
+				#dec=Angle(dec, unit=u.deg)
+				#ra=ra.to_string(sep='dms',pad=True)
+				#dec=dec.to_string(sep='dms',pad=True,)
 				print(ra[:5],dec[:5])
 
 				return [ID,ra,dec]
@@ -105,8 +105,8 @@ class OpenCluster():
 		self.sampedro_n0=self.loadcatalog(path,'_Sampedro_cluster_members_query.csv',(2,3,5,57,58,59),'\t',1 ,[('ID','U10'),('ra','f8'),('dec','f8'),('M1','b'),('M2','b'),('M3','b')],debug=debug)
 		dt = np.dtype([('ID', np.unicode_,21), ('ra', np.unicode_, 12), ('dec', np.unicode_, 11)])
 		
-		#self.PS=self.loadcatalog(path, '_panstarrs_search.txt',(1,2,3),'\t',2 ,dt,debug=debug)
-		self.PS=self.loadcatalog(path, '_panstarrs_search.csv',(0,1,2),',',1 ,dt,debug=debug)
+		self.PS=self.loadcatalog(path, '_panstarrs_search.txt',(1,2,3),'\t',2 ,dt,debug=debug)
+		#self.PS=self.loadcatalog(path, '_panstarrs_search.csv',(0,1,2),',',1 ,dt,debug=debug)
 		self.K2=self.loadcatalog(path, '_k2_search.txt',(0,4,5,20),'\t',2 ,[('ID','i8'),('ra','U12'),('dec','U12'),('2MASS','U12')],debug=debug)
 		
 		#create the subset of K2 LCs where also 2MASS IDs exist
@@ -382,11 +382,14 @@ def wrap_cross(inputs,debug=False):
 		id2mass=open('share/2mass_match/'+item[1]+'_2mass_IDs.txt', 'w')
 		idps=open('share/panstarrs_match/'+item[1]+'_panstarrs_IDs.txt', 'w')
 		idcross=open('share/cross_match/'+item[1]+'_cross_IDs.txt', 'w')
+		idunion=open('share/cross_match/union/'+item[1]+'_union_IDs.txt', 'w')
 		#out.write(str(len(x.sampedro_n0[0]))+'\n'+str(len(x.sampedro_n1[0]))+'\n'+str(len(x.sampedro_n2[0]))+'\n'+str(len(x.sampedro_n3[0]))+'\n'+str(len(x.PS[0]))+'\n'+str(len(x.K2[0]))+'\n')
 		lps_m, ps_m, psra_m,psdec_m,len1=x.second_order_match(1,distPS='0d0m3s',dist='0d0m3s',debug=debug)
 		lk2_m, k2_m,k2ra_m,k2dec_m, len2=x.sampedro_match(1,dist='0d0m3s',cat='K2MASS',debug=debug)
 		print(ps_m,k2_m)
 		cross=set(ps_m) & set(k2_m)
+		union=set(ps_m) | set(k2_m)
+		print(len(union))
 		for x in k2_m:
 			id2mass.write('EPIC '+str(x)+'\n')
 			
@@ -395,9 +398,13 @@ def wrap_cross(inputs,debug=False):
 			
 		for x in list(cross):
 			idcross.write('EPIC '+str(x)+'\n')
+
+		for x in union:
+			idunion.write('EPIC '+str(x)+'\n')
 		idps.close()
 		id2mass.close()
 		idcross.close()
+		idunion.close()
 	return
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
@@ -457,8 +464,8 @@ def wrap_basic(inputs,debug=False):
 
 inputs=[]
 #inputs.append(['M67','M67', 15, 4.0])
-#inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5])
-inputs.append(['M44','M44', 47, 0.73])
+inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5])
+#inputs.append(['M44','M44', 47, 0.73])
 wrap_cross(inputs,debug=True)
 
 
