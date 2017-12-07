@@ -1,3 +1,9 @@
+#Cleaning to-dos:
+#clean up mocktest()
+#write docstrings
+#remove confusing comments
+
+
 from astropy.coordinates import ICRS
 from astropy import units as u
 from astropy.coordinates.angles import Angle
@@ -45,8 +51,6 @@ class OpenCluster():
 			ra=cat['ra'].tolist()
 			dec=cat['dec'].tolist()
 			ID=cat['ID'].tolist()
-						
-			
 			
 			if ('M1' and 'M2' and 'M3') in cat.dtype.names: 
 				m1=cat['M1'].tolist()
@@ -56,18 +60,14 @@ class OpenCluster():
 				dec=Angle(dec, unit=u.deg)
 				ra=ra.to_string(sep='dms',pad=True)
 				dec=dec.to_string(sep='dms',pad=True,)
-				#print([ID,ra,dec,m1,m2,m3])
 				return [ID,ra,dec,m1,m2,m3]
-			
 		
 			elif ('2MASS') in cat.dtype.names:
-	
 				for item in ra:
 					ra[ra.index(item)]='+'+item[:2]+'h'+item[3:5]+'m'+item[6:]+'s'
 				for item in dec:
 					dec[dec.index(item)]=item[:3]+'d'+item[4:6]+'m'+item[7:]+'s'
 				Twomass=cat['2MASS'].tolist()
-				#print([ID,ra,dec,Twomass])
 				return [ID,ra,dec,Twomass]
 			
 			else:
@@ -75,13 +75,11 @@ class OpenCluster():
 					ra[ra.index(item)]='+'+item[:2]+'h'+item[3:5]+'m'+item[6:]+'s'
 				for item in dec:
 					dec[dec.index(item)]=item[:3]+'d'+item[4:6]+'m'+item[7:]+'s'
-				#print([ID,ra,dec])
 				return [ID,ra,dec]
 
 		else: 
 			
 			print('A ' + self.name + ' file is missing! Abort! Abort!')
-			#exit()
 			
 			return
 
@@ -96,7 +94,6 @@ class OpenCluster():
 
 		self.sampedro_n0=self.loadcatalog(path,'_Sampedro_cluster_members_query.csv',(2,3,5,57,58,59),'\t',1 ,[('ID','U10'),('ra','f8'),('dec','f8'),('M1','b'),('M2','b'),('M3','b')],debug=debug)
 		dt = np.dtype([('ID', np.unicode_,21), ('ra', np.unicode_, 12), ('dec', np.unicode_, 11)])
-		#[('ID','i8'),('ra','U12'),('dec','U12')]
 		
 		self.PS=self.loadcatalog(path, '_panstarrs_search.txt',(1,2,3),'\t',2 ,dt,debug=debug)
 		self.K2=self.loadcatalog(path, '_k2_search.txt',(0,4,5,20),'\t',2 ,[('ID','i8'),('ra','U12'),('dec','U12'),('2MASS','U12')],debug=debug)
@@ -201,29 +198,15 @@ class OpenCluster():
 			print('This is not a valid catalog chiffre. I\'ll use Pan-STARRS.')
 			l=self.PS
 		
-		ra2=Angle(l[1])
-		dec2=Angle(l[2])
-		#print(sampedro[n][1])
-		ra3=Angle(sampedro[n][1])#,u.deg) 
-		dec3=Angle(sampedro[n][2])#,u.deg)
-		#ra3=sampedro[n][1]
-		#dec3=sampedro[n][2]
-		#print(ra3)
-		#print(ra2)
-		#print(dec3)
-		#assume ra1/dec1 and ra/dec2 are arrays loaded from some file
-		
-		c = ICRS(ra=ra3, dec=dec3)#cluster stars from Sampedro
-		catalog = ICRS(ra=ra2, dec=dec2)#panstarrs or K2MASS has all the parameters
+		ra2=l[1]
+		dec2=l[2]
+		ra3=sampedro[n][1] 
+		dec3=sampedro[n][2]
 
 		#match Sampedro cluster members with Pan-STARRS
 		try:
 
-			#idx are indices into catalog that are the closest objects to each of the coordinates in c
-			idx, d2d, d3d = match_coordinates_sky(c,catalog) 
-			match_idx=are_within_bounds(idx,d2d,'0d0m0s', dist)
-			match_K2ID=[i for j, i in enumerate(self.K2MASS[0]) if j in match_idx]
-			print('Sampedro_n' + str(n) + ' X ' + cat + ' X ' + dist + ': ' + str(len(match_idx)) + ' matching objects.')
+			match_idx, match_K2ID, match_K2Ra,match_K2Dec,len_match_idx=match(l,ra2,dec2,ra3,dec3,dist)
 		
 		except ValueError:
 
@@ -232,7 +215,7 @@ class OpenCluster():
 
 
 	
-		return match_idx, match_K2ID, str(len(match_idx))
+		return match_idx, match_K2ID, match_K2Ra,match_K2Dec,len_match_idx
 
 	#--------------------------------------------------------------------------------------------
 
@@ -246,14 +229,10 @@ class OpenCluster():
 
 		lK2=list(self.K2)
 		lPS=list(self.PS)
-		#THE PROBLEM IS HERE
-		match_idx_PS, match_K2ID, length=self.sampedro_match(n, dist=distPS, cat='Pan-STARRS',debug=debug)
+		#THE PROBLEM MAY BE HERE
+		match_idx_PS, match_K2ID, match_K2Ra,match_K2Dec,length=self.sampedro_match(n, dist=distPS, cat='Pan-STARRS',debug=debug)
 
-		idx_K2=list(range(len(lK2[0])))#is that one even necessary???
-		#print('K2 object list has '+ str(len(idx_K2))+ ' LCs.')
-		#print('These should be just ints.')
-		#print(match_idx_PS)
-		#print(match_idx_PS)
+		idx_K2=list(range(len(lK2[0])))
 		
 		for _ in range(len(self.K2)):
 			lK2[_]= [i for j, i in enumerate(lK2[_]) if j in idx_K2]
@@ -266,31 +245,34 @@ class OpenCluster():
 			print('The arrays are empty for Sampedro_' + str(n)+'.')
 			second_match_idx=[]
 		else:
-			ra2=Angle(lK2[1])
-			dec2=Angle(lK2[2])
+			ra2=lK2[1]
+			dec2=lK2[2]
 			
-			ra3=Angle(lPS[1]) 
-			dec3=Angle(lPS[2])
+			ra3=lPS[1] 
+			dec3=lPS[2]
 
-			#assume ra1/dec1 and ra/dec2 are arrays loaded from some file
-			
-			c = ICRS(ra=ra3, dec=dec3)#c=cluster stars from Pan-STARRS
-			catalog = ICRS(ra=ra2, dec=dec2)#catalog=K2 is where I need LCs to exist
+			second_match_idx, match_K2_ID, match_K2_Ra, match_K2_Dec,len_second_match_idx =match(lK2,ra3,dec3,ra2,dec2,dist)
 
-			#match Sampedro cluster members with Pan-STARRS
-			
-			idx, d2d, d3d = match_coordinates_sky(c, catalog,nthneighbor=1) #idx are indices into catalog that are the closest objects to each of the coordinates in c
-			second_match_idx=are_within_bounds(idx, d2d,'0d0m0s', dist)
-
-			#HERE WE NEED TO RETURN REAL K2 IDs and not just indices
-			#print('Sampedro_n' + str(n) + ' X  Pan-STARRS X K2 X ' + dist + ': ' + str(len(second_match_idx)) + ' matching objects.')
-		
-		return second_match_idx, str(len(second_match_idx))
+		return second_match_idx, match_K2_ID, match_K2_Ra, match_K2_Dec, len_second_match_idx
 
 #------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------
 
 #General purpose funcs:
+def match(cat,ra1,dec1,ra2,dec2,dist='0d0m1s'):#ra2, dec2 correspond to cat
+    '''
+    Finds the entries in a catalog cat with corresponsing ra2 and dec2 that match with a list or coordinates (ra1,dec1)  
+    '''
+    ra1,ra2,dec1,dec2=Angle(ra1),Angle(ra2),Angle(dec1),Angle(dec2)
+    c = ICRS(ra=ra2, dec=dec2)
+    catalog = ICRS(ra=ra1, dec=dec1)
+    idx, d2d, d3d = match_coordinates_sky(c, catalog,nthneighbor=1) #idx are indices into catalog that are the closest objects to each of the coordinates in c
+    second_match_idx=are_within_bounds(idx, d2d,'0d0m0s', dist)
+    match_ID=[i for j, i in enumerate(cat[0]) if j in second_match_idx]
+    match_Ra=[i for j, i in enumerate(cat[1]) if j in second_match_idx]
+    match_Dec=[i for j, i in enumerate(cat[2]) if j in second_match_idx]
+			
+    return second_match_idx,match_ID,match_Ra, match_Dec, str(len(second_match_idx))
 
 def mocktest():
 	
@@ -313,16 +295,43 @@ def mocktest():
 		assert a==[40,40,40,20,10,10,2,2,5,5,5,5]
 		print('Test success. Green light for matching.')
 	except AssertionError:
-		print('Your results may not be valid. Test failed. Please check.')
-		
+		print('Your results may not be valid. Test failed. Please check.')		
 	return
 
 def find(name, path,debug=False):
+    
+    '''
+    Return the path to a file with name if it exists within the folder in path.
+    
+    Args:
+    name: name of the file one is looking for
+    path: path where on suspects to find the file
+    debug: generates extra output to the command prompt for debugging
+    
+    Returns:
+    path to file
+    '''
+    
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
 
 def are_within_bounds(idx,d2d, min_angle, max_angle,debug=False):
+	
+	'''
+	Check if the objects with indices idx which match a catalog object within distance d2d lie within [min_angle, max-angle].
+	
+	Args:
+	idx: list of indices into said catalog for identification
+	d2d: list of corresponding distances
+	min_angle: minimum distance in dms format
+	max_angle: maximum distance in dms format
+	debug: generates extra output to the command prompt for debugging
+	
+	Returns:
+	n: indices extracted from idx that fulfil the condition for angular distance
+	'''
+	
 	l=[]
 	d=[]
 	for _ in range(len(d2d)):	
@@ -336,10 +345,7 @@ def are_within_bounds(idx,d2d, min_angle, max_angle,debug=False):
 	while len(lpop)>0:
 		#find same indices
 		m=[i for i, j in enumerate(lpop) if j == lpop[0]]
-	#	print('m:')
-	#	print(len(m))
 		if len(m)>1:
-	#		print(m)
 			for k in range(len(m)-1):
 				if dpop[m[k]].is_within_bounds(dpop[m[k+1]]): 
 					minidx=lpop[m[k]]
@@ -349,12 +355,6 @@ def are_within_bounds(idx,d2d, min_angle, max_angle,debug=False):
 		n.append(minidx)
 		lpop=[i for j, i in enumerate(lpop) if j not in m]
 		dpop=[i for j, i in enumerate(dpop) if j not in m]
-		# print('lpop:')
-		# print(lpop)
-		# print('n:')
-		# print(n)
-	
-
 	return n
 
 #----------------------------------------------------------------------------------------
@@ -362,51 +362,32 @@ def are_within_bounds(idx,d2d, min_angle, max_angle,debug=False):
 
 
 def wrap(inputs,debug=False):
-	#mocktest()
 	for item in inputs:
 		
 		x=OpenCluster(item[0],item[1], radius=item[2], age=item[3])
 		x.loadcatalogs(debug=debug)
 		print('\nMatching catalogs for ' + x.name + ':\n')
 		x.refinesampedro(debug=debug)
-		out=open('results/'+item[1]+'_results.txt', 'w')
-		ids=open('share/'+item[1]+'_IDs.txt', 'w')
-		out.write(str(len(x.sampedro_n0[0]))+'\n'+str(len(x.sampedro_n1[0]))+'\n'+str(len(x.sampedro_n2[0]))+'\n'+str(len(x.sampedro_n3[0]))+'\n'+str(len(x.PS[0]))+'\n'+str(len(x.K2[0]))+'\n')
-		#all line numbers +2 in parameters sheet
-		for i in range(1,4):
-			#10
-			l, k2, length=x.sampedro_match(i,dist='0d0m5s',cat='Pan-STARRS',debug=debug)
-			out.write(length+'\n')
-			#11
-			l, k2, length=x.sampedro_match(i,dist='0d0m3s',cat='Pan-STARRS',debug=debug)
-			out.write(length+'\n')
-		for i in range(1,4): 
-			#16,18,20
-			l, k2, length=x.sampedro_match(i,dist='0d0m5s',cat='K2MASS',debug=debug)
-			out.write(length+'\n')
-			#17,19,21     
-			l, k2, length=x.sampedro_match(i,dist='0d0m3s',cat='K2MASS',debug=debug)
-			if i==1:		
-				for item in k2:
-					ids.write(str(item)+'\n')
-			out.write(length+'\n')
-		for i in range(1,4):
-			#22,26,30
-			l, length=x.second_order_match(i,distPS='0d0m5s',dist='0d0m5s',debug=debug)
-			out.write(length+'\n')
-			#23,27,31
-			l, length=x.second_order_match(i,distPS='0d0m5s',dist='0d0m3s',debug=debug)
-			out.write(length+'\n')
-			#24,28,32
-			l, length=x.second_order_match(i,distPS='0d0m3s',dist='0d0m5s',debug=debug)
-			out.write(length+'\n')
-			#25,29,33
-			l, length=x.second_order_match(i,distPS='0d0m3s',dist='0d0m3s',debug=debug)
-			out.write(length+'\n')
-
-		out.close()
-		ids.close()
-		return
+		id2mass=open('share/2mass_match/'+item[1]+'_2mass_IDs.txt', 'w')
+		idps=open('share/panstarrs_match/'+item[1]+'_panstarrs_IDs.txt', 'w')
+		idcross=open('share/cross_match/'+item[1]+'_cross_IDs.txt', 'w')
+		#out.write(str(len(x.sampedro_n0[0]))+'\n'+str(len(x.sampedro_n1[0]))+'\n'+str(len(x.sampedro_n2[0]))+'\n'+str(len(x.sampedro_n3[0]))+'\n'+str(len(x.PS[0]))+'\n'+str(len(x.K2[0]))+'\n')
+		lps_m, ps_m, psra_m,psdec_m,len1=x.second_order_match(1,distPS='0d0m3s',dist='0d0m3s',debug=debug)
+		lk2_m, k2_m,k2ra_m,k2dec_m, len2=x.sampedro_match(1,dist='0d0m3s',cat='K2MASS',debug=debug)
+		print(ps_m,k2_m)
+		cross=set(ps_m) & set(k2_m)
+		for x in k2_m:
+			id2mass.write('EPIC '+str(x)+'\n')
+			
+		for x in ps_m:
+			idps.write('EPIC '+str(x)+'\n')
+			
+		for x in list(cross):
+			idcross.write('EPIC '+str(x)+'\n')
+		idps.close()
+		id2mass.close()
+		idcross.close()
+	return
 
 
 
@@ -417,8 +398,41 @@ def wrap(inputs,debug=False):
 
 
 inputs=[]
-#inputs.append(['M67','M67', 15, 4.0])
+inputs.append(['M67','M67', 15, 4.0])
 inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5])
-#inputs.append(['M44','M44', 47, 0.73])
+inputs.append(['M44','M44', 47, 0.73])
 wrap(inputs,debug=True)
 
+#DUMP
+
+		#all line numbers +2 in parameters sheet
+		#for i in range(1,2):
+			##10
+			#l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m5s',cat='Pan-STARRS',debug=debug)
+			#out.write(length+'\n')
+			##11
+			#l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m3s',cat='Pan-STARRS',debug=debug)
+			#out.write(length+'\n')
+		#for i in range(1,2): 
+			##16,18,20
+			#l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m5s',cat='K2MASS',debug=debug)
+			#out.write(length+'\n')
+			##17,19,21    
+        	
+		#for i in range(1,2):
+			##22,26,30
+			#l, ps, ra,dec,length=x.second_order_match(i,distPS='0d0m5s',dist='0d0m5s',debug=debug)
+			#out.write(length+'\n')
+			##23,27,31
+			#l, ps, ra,dec,length=x.second_order_match(i,distPS='0d0m5s',dist='0d0m3s',debug=debug)
+			#out.write(length+'\n')
+			##24,28,32
+			#l, ps, ra,dec,length=x.second_order_match(i,distPS='0d0m3s',dist='0d0m5s',debug=debug)
+			#out.write(length+'\n')
+			##25,29,33
+						#out.write(length+'\n')
+			#if i==1:		
+			#	for item in ps:
+		#			ids.write(str(item)+'\n')
+			#out.write(length+'\n')
+       
