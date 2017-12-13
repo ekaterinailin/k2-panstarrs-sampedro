@@ -153,6 +153,7 @@ def on_key(event):
 
 			plt.plot(myflare_stop,myflare_stop_flux,'o',alpha=0.8, lw=0.4,color='blue')
 			plt.plot(myflare_start,myflare_start_flux,'o',alpha=0.8, lw=0.4,color='blue')
+			plt.draw()
 			line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])+'\n'
 			print(line)
 	
