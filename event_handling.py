@@ -10,6 +10,13 @@ import datetime
 #--------------------------------------------------------------------------------------------------
 
 def reset_pipeline():
+
+	'''
+	
+	Resets interactive pipeline for event handling in the figure.
+	
+	'''
+
 	global count, myflare_start, myflare_stop, myflare_start_flux, myflare_stop_flux,comment,interrupted
 	count=0#length of list instead?
 	comment=''
@@ -18,6 +25,17 @@ def reset_pipeline():
 
 
 def on_pick(event):  #event => matplotlib.backend_bases.PickEvent
+
+	'''
+	
+	If a data point in the observed light curve is clicked, it is marked as either start or end of a flare event using green and red colors respectively. A key input triggers a save-and-proceed or a discard-and-proceed event in the on-key function.
+
+    Input:
+
+    event: Left mouse button click event within a given radius of a data point
+    in the figure.
+
+    '''
 
 	#Is there a more elegant solution instead of defining these variables as global?
 	
@@ -91,71 +109,106 @@ def on_pick(event):  #event => matplotlib.backend_bases.PickEvent
 
 def on_key(event):
 	
+    '''
+
+    If \"y\", \"x\" or \"a\" are pressed, a save-and-proceed,
+    discard-and-proceed or a write-to-file-and-proceed procedure is executed for
+    one or several flare start and end pairs.
+
+    Input:
+
+    event: General key event.
+
+    '''
+
 	#Here I write in my pairs of flare starts and ends:
-
-	myflares=open('share/cross_match/union/'+cluster+'_post_appa/'+objectid+'_my_flares.txt','a')
-	if interrupted==True:
-		myflares.write(',,,,'+str(datetime.datetime.now())+'\n')
-		interrupted=False
+    myflares=open('share/cross_match/union/'+cluster+'_post_appa/'+objectid+'_my_flares.txt','a')
+    if interrupted==True:
+        myflares.write(',,,,'+str(datetime.datetime.now())+'\n')
+        interrupted=False
 	#Again: is there a more elegant solution?
-
-	global count, myflare_start, myflare_stop, myflare_start_flux, myflare_stop_flux,comment,interrupted, time	
+    global count, myflare_start, myflare_stop, myflare_start_flux, myflare_stop_flux,comment,interrupted, time	
 	#So that you know:
-
-	print('You pressed', event.key)
+    print('You pressed', event.key)
 		
 	#If I choose to save the marked pairs:
-
-	if event.key=='y':
-		
-		print('The following events are added to the list:\n')
-		for i in range(count//2):
-			line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])
-			print(line)
-			print()
-		try:
-			comment=input('Click into command prompt to write and enter a comment on the selected events,\nthen click into the figure\nand/or press \"a\": \n')
-		except RuntimeError:
-			print('You failed.')
-		print()
+    if event.key=='y':
+        print('The following events are added to the list:\n')
+        for i in range(count//2):
+            line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])
+            print(line)
+            print()
+        try:
+            comment=input('Click into command prompt to write and enter a comment on the selected events,\nthen click into the figure\nand/or press \"a\": \n')
+        except RuntimeError:
+            print('You failed.')
+        print()
 		
 	#Elif I choose to discard and try again:
 
-	elif event.key=='x':
-
-		print('The following events are removed from the list:\n')
-		for i in range(count//2):
-
-			ax.plot(myflare_stop,myflare_stop_flux,'o',alpha=0.8, lw=0.4,color='blue')
-			ax.plot(myflare_start,myflare_start_flux,'o',alpha=0.8, lw=0.4,color='blue')
-			plt.draw()
-			line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])+'\n'
-			print(line)
+    elif event.key=='x':
+        
+        print('The following events are removed from the list:\n')
+        for i in range(count//2):
+            
+            ax.plot(myflare_stop,myflare_stop_flux,'o',alpha=0.8, lw=0.4,color='blue')
+            ax.plot(myflare_start,myflare_start_flux,'o',alpha=0.8, lw=0.4,color='blue')
+            plt.draw()
+            line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])+'\n'
+            print(line)
 		#In any case I set back the counter and empty the lists:
-		reset_pipeline()
-		myflares.close()
+        reset_pipeline()
+        myflares.close()
 		
 	#If I choose to comment or not I write out the following line:
 
-	elif event.key=='a':
-		for i in range(count//2):
-			print('This is your comment: '+comment+'\n')
-			line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])+','+str(time.index(myflare_start[i][0]))+','+str(time.index(myflare_stop[i][0]))+','+str(comment)
-			print(line)
-			myflares.write(line+'\n')
+    elif event.key=='a':
+        for i in range(count//2):
+            print('This is your comment: '+comment+'\n')
+            line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])+','+str(time.index(myflare_start[i][0]))+','+str(time.index(myflare_stop[i][0]))+','+str(comment)
+            print(line)
+            myflares.write(line+'\n')
 		
 		#In any case I set back the counter and empty the lists:
-		del comment
-		reset_pipeline()
-		myflares.close()
-
-	return
+        del comment
+        reset_pipeline()
+        myflares.close()
+        
+    return
 
 def loaddata(cluster, objectid):
+	
+	'''
+
+    Imports the light curve, the quiescent model light curve, start and stop
+    time of flare events from the Appaloosa pipeline and the statistical error
+    for the Kepler photometry.
+    ====================================
+    Input:
+
+    cluster: open cluster name string
+    objectid: light curve ID
+
+    =====================================
+    Output:
+    
+    time: time series of K2 observations 
+    flux_gap: K2 observations
+    error: mean statistical error derived from the short term variation in the quiescent
+    flux
+    flux_model: model light curve as derived by Appaloosa
+    istart: start ids of flare events in flux_gap
+    istop: stop id of flare events in flux_gap
+
+    '''
+
 	
 	#Read in data and convert to lists:
 	time,flux_gap,error,flux_model=np.loadtxt('share/cross_match/union/'+cluster+'_post_appa/'+objectid+'.txt',delimiter=',',unpack=True)
 	istart, istop=np.loadtxt('share/cross_match/union/'+cluster+'_post_appa/'+objectid+'_flares.txt',delimiter=',',unpack=True,dtype=np.dtype(np.int16))
+	
+
+    
 
 	return list(time),list(flux_gap),list(error),list(flux_model),list(istart), list(istop)
 
