@@ -293,40 +293,7 @@ class OpenCluster():
 			second_match_idx, match_K2_ID, match_K2_Ra, match_K2_Dec,len_second_match_idx,other_match_ID,match_2mass_ID =match(lK2,lPS,ra3,dec3,ra2,dec2,dist)
 
 		return second_match_idx, match_K2_ID, match_K2_Ra, match_K2_Dec, len_second_match_idx,other_match_ID
-		
-	#--------------------------------------------------------------------------------------------
-	def readselect(self,ids,cat='PS'):
-		
-		import linecache
-		cats={'PS':['_panstarrs_search.txt',[24,32,40,48,56]], '2MASS':'_k2_search.txt'}
-		dt=np.unicode_
-		line=linecache.getline('cats/'+self.sampedro_name+cats[cat][0],ids)
-		print(line)
-		myarray = np.fromstring(line,dtype=dt, sep='\t')
 
-		print(myarray)
-		mags=[myarray[i] for i in cats[cat][1]]
-		return mags
-
-    #--------------------------------------------------------------------------------------------
-
-	def read_params(self, udict):
-
-		for key, value in udict.items():
-			#For all Pan-STARRS IDs:
-			if type(value)==np.int64:
-				ps=list(self.PS)
-				ids=ps[0].index(value)
-				grizy=self.readselect(ids,cat='PS')
-				print(grizy)
-			
-			#For all 2MASS IDs:
-			else:
-				k2=list(self.K2)
-				ids=k2[3].index(value)
-				jhk=self.readselect(ids,cat='2MASS')
-				print(jhk)
-		return
 #------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------
 
@@ -440,134 +407,121 @@ def are_within_bounds(idx,d2d, min_angle, max_angle,debug=False):
 
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
+def readselect2(PS,K2,obj,ids,cat='PS'):
 
+    import linecache
+    cats={'PS':['_panstarrs_search.txt',[24,32,40,48,56]]}
+    dt=np.unicode_
+    line=linecache.getline('cats/'+'Ruprecht_147'+cats[cat][0],ids)
+    #print(line)
+    myarray=np.core.defchararray.split(line, sep="\t").tolist()
+    
+    #print(myarray)
+    mags=[float(myarray[i]) for i in cats[cat][1]]
+    return mags
+#--------------------------------------------------------------------------------------------
+
+def read_params2(PS,obj,udict):
+    k2=np.genfromtxt('/home/ekaterina/Documents/Matching_Catalogs/share/cross_match/union/Ruprecht_147_k2_JHK.csv',delimiter=',',skip_header=2,usecols=(20,26,27,28),dtype=[('ID','U16'),('J','f8'),('H','f8'),('K','f8')])
+    J=k2['J'].tolist()
+    H=k2['H'].tolist()
+    K=k2['K'].tolist()
+    k2mass=k2['ID'].tolist()
+
+    
+    for key, value in udict.items():
+        
+        #For all Pan-STARRS IDs:
+        if type(value)==np.int64:
+
+            ps=list(PS)
+            ids=ps[0].index(value)
+            grizy=readselect2(PS,K2,obj,ids,cat='PS')
+            print(grizy)
+            udict[key]=[value,'grizy',grizy]
+            
+
+        #For all 2MASS IDs:
+        else:
+            value=str(value)
+		
+            for ids, item in enumerate(k2mass):
+                if item==value:
+                    jhk=[J[ids],H[ids],K[ids]]
+                    print(jhk)
+                    udict[key]=[value,'jhk',jhk]
+        
+    return udict
 
 def wrap_cross(inputs,debug=False):
-	for item in inputs:
-		
-		x=OpenCluster(item[0],item[1], radius=item[2], age=item[3])
-		x.loadcatalogs(debug=debug)
-#		print('\nMatching catalogs for ' + x.name + ':\n')
-#		x.refinesampedro(debug=debug)
-		#out.write(str(len(x.sampedro_n0[0]))+'\n'+str(len(x.sampedro_n1[0]))+'\n'+str(len(x.sampedro_n2[0]))+'\n'+str(len(x.sampedro_n3[0]))+'\n'+str(len(x.PS[0]))+'\n'+str(len(x.K2[0]))+'\n')
-#		lps_m, ps_m, psra_m,psdec_m,len1,PS_match_ID=x.second_order_match(1,distPS='0d0m3s',dist='0d0m3s',debug=debug)
-#		lk2_m, k2_m,k2ra_m,k2dec_m, len2,twomass_match_ID=x.sampedro_match(1,dist='0d0m3s',cat='K2MASS',debug=debug)
-#		inter1=open('inter1.txt', 'w')
-#		inter2=open('inter2.txt', 'w')
-#		for x,y in zip(ps_m,PS_match_ID):
-#			inter1.write(str(x)+','+str(y)+'\n')
-#		inter1.close()		
-#		for x,y in zip(k2_m,twomass_match_ID):
-#			inter2.write(str(x)+','+str(y)+'\n')
-#		inter2.close()
+    for item in inputs:
+        x=OpenCluster(item[0],item[1], radius=item[2], age=item[3])
+        x.loadcatalogs(debug=debug)
+    return x.PS, x.K2, x
 
-		ps_m,PS_match_ID=np.loadtxt('inter1.txt', delimiter=',', unpack=True,dtype=[('ID','i8'),('PS', 'i8')])
-		k2_m,twomass_match_ID=np.loadtxt('inter2.txt', delimiter=',', unpack=True,dtype=[('ID','i8'),('2MASS',np.unicode_,18)])
-		ps_m,PS_match_ID,k2_m,twomass_match_ID=list(ps_m),list(PS_match_ID),list(k2_m),list(twomass_match_ID)
-		print(PS_match_ID)
-		twomass_match_ID=[item[2:] for x,item in enumerate(twomass_match_ID)]
-		print(twomass_match_ID)
-		
-		print(len(PS_match_ID),len(ps_m))
-		print(len(twomass_match_ID),len(k2_m))
-		PSdict=dict(zip(ps_m,PS_match_ID))
-		TwoMASSdict=dict(zip(k2_m,twomass_match_ID))
-		cross=set(ps_m) & set(k2_m)
-		union=set(ps_m) | set(k2_m)
-		union_dict = TwoMASSdict
-		union_dict.update(PSdict)
-		print(PSdict)
-		print(union_dict)
-		print(len(union))
-		print(type(PS_match_ID[0]))
-
-		x.read_params(union_dict)
-
-		#Objects with 2MASS and Pan-STARRS respectively
-		id2mass=open('share/2mass_match/'+item[1]+'_2mass_IDs.txt', 'w')
-		idps=open('share/panstarrs_match/'+item[1]+'_panstarrs_IDs.txt', 'w')
-		for x in k2_m:
-			id2mass.write('EPIC '+str(x)+'\n')
-			
-		for x in ps_m:
-			idps.write('EPIC '+str(x)+'\n')
-		idps.close()
-		id2mass.close()
-		
-
-		#Cross section of Pan-STARRS and 2MASS
-		idcross=open('share/cross_match/'+item[1]+'_cross_IDs.txt', 'w')
-		#Union of Pan-STARRS and 2MASS		
-		idunion=open('share/cross_match/union/'+item[1]+'_union_IDs.txt', 'w')	
-		for x in list(cross):
-			idcross.write('EPIC '+str(x)+'\n')
-
-		for x in union:
-			idunion.write('EPIC '+str(x)+'\n')
-
-		idcross.close()
-		idunion.close()
-	return
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 
-def wrap_basic(inputs,debug=False):
-	for item in inputs:
-		
-		x=OpenCluster(item[0],item[1], radius=item[2], age=item[3])
-		x.loadcatalogs(debug=debug)
-		print('\nMatching catalogs for ' + x.name + ':\n')
-		x.refinesampedro(debug=debug)
-		out=open('share/'+item[1]+'_IDs.txt', 'w')
-		out.write(str(len(x.sampedro_n0[0]))+'\n'+str(len(x.sampedro_n1[0]))+'\n'+str(len(x.sampedro_n2[0]))+'\n'+str(len(x.sampedro_n3[0]))+'\n'+str(len(x.PS[0]))+'\n'+str(len(x.K2[0]))+'\n')
-		
+def wrap_further(item,x):
+    ps_m,PS_match_ID=np.loadtxt('inter1.txt', delimiter=',', unpack=True,dtype=[('ID','i8'),('PS', 'i8')])
+    k2_m,twomass_match_ID=np.loadtxt('inter2.txt', delimiter=',', unpack=True,dtype=[('ID','i8'),('2MASS',np.unicode_,18)])
+    ps_m,PS_match_ID,k2_m,twomass_match_ID=list(ps_m),list(PS_match_ID),list(k2_m),list(twomass_match_ID)
+    twomass_match_ID=[item[2:] for x,item in enumerate(twomass_match_ID)]
+    PSdict=dict(zip(ps_m,PS_match_ID))
+    TwoMASSdict=dict(zip(k2_m,twomass_match_ID))
+    cross=set(ps_m) & set(k2_m)
+    union=set(ps_m) | set(k2_m)
+    union_dict = TwoMASSdict
+    union_dict.update(PSdict)
+    
+	#Extract colors and distances and write them in a file for further analysis
+    udict_color=read_params2(PS,x,union_dict)
+    udict_out=open('share/cross_match/union/'+item[1]+'_union_IDs.txt', 'w')
+    udict_out.write(str(item[1:])+'\n')
 
-		#all line numbers +2 in parameters sheet
-		for i in range(1,4):
-			##10
-			l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m5s',cat='Pan-STARRS',debug=debug)
-			out.write(length+'\n')
-			##11
-			l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m3s',cat='Pan-STARRS',debug=debug)
-			out.write(length+'\n')
-		for i in range(1,4): 
-			##16,18,20
-			l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m5s',cat='K2MASS',debug=debug)
-			out.write(length+'\n')
-			##17,19,21
-			l, k2, ra,dec,length=x.sampedro_match(i,dist='0d0m3s',cat='K2MASS',debug=debug)
-			out.write(length+'\n')
-		
-			# if i==1:		
-			#     for item in ps:
-			#         ids.write(str(item)+'\n')
-		for i in range(1,4):
-			##22,26,30
-			l, ps, ra,dec,length,other_match_ID=x.second_order_match(i,distPS='0d0m5s',dist='0d0m5s',debug=debug)
-			out.write(length+'\n')
-			##23,27,31
-			l, ps, ra,dec,length,other_match_ID=x.second_order_match(i,distPS='0d0m5s',dist='0d0m3s',debug=debug)
-			out.write(length+'\n')
-			##24,28,32
-			l, ps, ra,dec,length,other_match_ID=x.second_order_match(i,distPS='0d0m3s',dist='0d0m5s',debug=debug)
-			out.write(length+'\n')
-			##25,29,33
-			l, ps, ra,dec,length,other_match_ID=x.second_order_match(i,distPS='0d0m3s',dist='0d0m3s',debug=debug)
-			out.write(length+'\n')
-			
-			#out.write(length+'\n')
-		out.close()
-	return
+    for key, value in udict_color.items():
+        color=''
+        for i,col in enumerate(value[2]):
+            color=color+','+str(col)
+        udict_out.write(str(key)+','+str(value[0])+','+str(value[1])+color+'\n')
+        
+    udict_out.close()
+
+
+    #Objects with 2MASS and Pan-STARRS respectively
+    id2mass=open('share/2mass_match/'+item[1]+'_2mass_IDs.txt', 'w')
+    idps=open('share/panstarrs_match/'+item[1]+'_panstarrs_IDs.txt', 'w')
+    for x in k2_m:
+        id2mass.write('EPIC '+str(x)+'\n')
+
+    for x in ps_m:
+        idps.write('EPIC '+str(x)+'\n')
+    idps.close()
+    id2mass.close()
+
+
+    #Cross section of Pan-STARRS and 2MASS
+    idcross=open('share/cross_match/'+item[1]+'_cross_IDs.txt', 'w')
+    #Union of Pan-STARRS and 2MASS		
+    idunion=open('share/cross_match/union/'+item[1]+'_union_IDs.txt', 'w')	
+    for x in list(cross):
+        idcross.write('EPIC '+str(x)+'\n')
+
+    for x in union:
+        idunion.write('EPIC '+str(x)+'\n')
+
+    idcross.close()
+    idunion.close()
+    return
 #----------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------
 
 #Wrapping it:
 
-
 inputs=[]
-#inputs.append(['M67','M67', 15, 4.0])
+#inputs.append(['M67','M67', 15, 4.0,908.])
 inputs.append(['Ruprecht 147','Ruprecht_147', 30, 2.5, 300.])
-#inputs.append(['M44','M44', 47, 0.73])
-wrap_cross(inputs,debug=True)
-
+#inputs.append(['M44','M44', 47, 0.73,187.])
+PS,K2,x=wrap_cross(inputs,debug=True)
+wrap_further(inputs[0],x)
 
