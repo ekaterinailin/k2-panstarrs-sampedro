@@ -2,76 +2,44 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+import datetime 
 
-#Kepler EPIC ID for the light curve I want to look at:
-cluster='M44'
-objectid='205071984'
+#--------------------------------------------------------------------------------------------------
+#FUNCTIONS:
+#--------------------------------------------------------------------------------------------------
 
-#Read in data and convert to lists:
-
-time,flux_gap,error,flux_model=np.loadtxt('share/cross_match/union/'+cluster+'_post_appa/'+objectid+'.txt',delimiter=',',unpack=True)
-istart, istop=np.loadtxt('share/cross_match/union/'+cluster+'_post_appa/'+objectid+'_flares.txt',delimiter=',',unpack=True,dtype=np.dtype(np.int16))
-time,flux_gap,error,flux_model,istart, istop=list(time),list(flux_gap),list(error),list(flux_model),list(istart), list(istop)
-
-
-#Set up a plot with matplotlib:
-A=plt.figure()
-ax =plt.subplot(211)
-ax.plot(time, flux_gap,'o',alpha=0.8, lw=0.4, picker=5) #observation
-ax.errorbar(time, flux_gap,yerr=error,alpha=0.8, lw=1) #statistical error
-for g,start in enumerate(istart):
-	xregion=time[istart[g]:istop[g]+1]
-	yregion=flux_gap[istart[g]:istop[g]+1]
-	ax.plot(xregion,yregion,color='red', lw=2) #detected flares in observations
-	#Shade the region where a flare is detected by Appaloosa:
-	ax.axvspan(xregion[0],xregion[-1],edgecolor='black', alpha=0.2,linewidth=2)
-
-ax.plot(time, flux_model, 'blue', lw=0.5) #model light curve from which the flare signatures deviate
-
-#Cosmetics
-
-plt.title('EPIC '+ objectid)
-plt.ylabel(r'Flux ($e^-$ sec$^{-1}$)')
-
-#Plot range specification
-
-xdur0 = min(time)
-xdur1 = max(time)
-xdurok = np.where((time >= xdur0) & (time <= xdur1))
-xdurok=xdurok[0] #xdurok is a tuple with a list: conversion needed
-plt.xlim(xdur0, xdur1) 
-plt.ylim(min([flux_gap[x] for x in xdurok]), max([flux_gap[x] for x in xdurok]))
-
-
-#Set up a residuals plot with matplotlib:
-
-bx=plt.subplot(212,sharex=ax)
-residuals=[x-y for x,y in zip(flux_gap,flux_model)]
-bx.plot(time, residuals,alpha=0.8, lw=1) #residuals
-plt.xlim(xdur0, xdur1)
-plt.ylim(max(-500,min([residuals[x] for x in xdurok])), max([500]+[residuals[x] for x in xdurok]))
-for g,start in enumerate(istart):
-	xregion=time[istart[g]:istop[g]+1]
-	yregion=flux_gap[istart[g]:istop[g]+1]
-	#Shade the region where a flare is detected by Appaloosa:
-	bx.axvspan(xregion[0],xregion[-1],edgecolor='black', alpha=0.2,linewidth=2)
-plt.xlabel('Time (BJD - 2454833 days)')
-plt.ylabel(r'Residual Flux ($e^-$ sec$^{-1}$)')
-
-#THIS IS THE INTERESTING PART!-------------------------------------------------------------
 def reset_pipeline():
-	global count, myflare_start, myflare_stop, myflare_start_flux, myflare_stop_flux,comment
+
+	'''
+	
+	Resets interactive pipeline for event handling in the figure.
+	
+	'''
+
+	global count, myflare_start, myflare_stop, myflare_start_flux, myflare_stop_flux,comment,interrupted
 	count=0#length of list instead?
 	comment=''
 	myflare_start,myflare_stop,myflare_start_flux,myflare_stop_flux=[],[],[],[]
 
-reset_pipeline()
+
 
 def on_pick(event):  #event => matplotlib.backend_bases.PickEvent
 
+	'''
+	
+	If a data point in the observed light curve is clicked, it is marked as either start or end of a flare event using green and red colors respectively. A key input triggers a save-and-proceed or a discard-and-proceed event in the on-key function.
+
+    Input:
+
+    event: Left mouse button click event within a given radius of a data point
+    in the figure.
+
+    '''
+
 	#Is there a more elegant solution instead of defining these variables as global?
 	
-	global count, myflare_start, myflare_stop, myflare_start_flux, myflare_stop_flux,comment
+	global count, myflare_start, myflare_stop, myflare_start_flux, myflare_stop_flux,comment,interrupted
 	
 	#What happens if I click on a data point:
 
@@ -141,69 +109,208 @@ def on_pick(event):  #event => matplotlib.backend_bases.PickEvent
 
 def on_key(event):
 	
+    '''
+
+    If \"y\", \"x\" or \"a\" are pressed, a save-and-proceed,
+    discard-and-proceed or a write-to-file-and-proceed procedure is executed for
+    one or several flare start and end pairs.
+
+    Input:
+
+    event: General key event.
+
+    '''
+
 	#Here I write in my pairs of flare starts and ends:
-
-	myflares=open('share/cross_match/union/'+cluster+'_post_appa/'+objectid+'_my_flares.txt','a')
-
+    myflares=open('share/cross_match/union/'+cluster+'_post_appa/'+objectid+'_my_flares.txt','a')
+    if interrupted==True:
+        myflares.write(',,,,'+str(datetime.datetime.now())+'\n')
+        interrupted=False
 	#Again: is there a more elegant solution?
-
-	global count, myflare_start, myflare_stop, myflare_start_flux, myflare_stop_flux,comment		
+    global count, myflare_start, myflare_stop, myflare_start_flux, myflare_stop_flux,comment,interrupted, time	
 	#So that you know:
-
-	print('You pressed', event.key)
+    print('You pressed', event.key)
 		
 	#If I choose to save the marked pairs:
-
-	if event.key=='y':
-		
-		print('The following events are added to the list:\n')
-		for i in range(count//2):
-			line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])
-			print(line)
-			print()
-		comment=input('Click into command prompt to write and enter a comment on the selected events,\nthen click into the figure\nand/or press \"a\": \n')
-		print()
+    if event.key=='y':
+        print('The following events are added to the list:\n')
+        for i in range(count//2):
+            line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])
+            print(line)
+            print()
+        try:
+            comment=input('Click into command prompt to write and enter a comment on the selected events,\nthen click into the figure\nand/or press \"a\": \n')
+        except RuntimeError:
+            print('You failed.')
+        print()
 		
 	#Elif I choose to discard and try again:
 
-	elif event.key=='x':
-
-		print('The following events are removed from the list:\n')
-		for i in range(count//2):
-
-			ax.plot(myflare_stop,myflare_stop_flux,'o',alpha=0.8, lw=0.4,color='blue')
-			ax.plot(myflare_start,myflare_start_flux,'o',alpha=0.8, lw=0.4,color='blue')
-			plt.draw()
-			line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])+'\n'
-			print(line)
+    elif event.key=='x':
+        
+        print('The following events are removed from the list:\n')
+        for i in range(count//2):
+            
+            ax.plot(myflare_stop,myflare_stop_flux,'o',alpha=0.8, lw=0.4,color='blue')
+            ax.plot(myflare_start,myflare_start_flux,'o',alpha=0.8, lw=0.4,color='blue')
+            plt.draw()
+            line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])+'\n'
+            print(line)
 		#In any case I set back the counter and empty the lists:
-		reset_pipeline()
-		myflares.close()
+        reset_pipeline()
+        myflares.close()
 		
 	#If I choose to comment or not I write out the following line:
 
-	elif event.key=='a':
-		for i in range(count//2):
-			line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])+','+str(comment)
-			print(line)
-			myflares.write(line+'\n')
+    elif event.key=='a':
+        for i in range(count//2):
+            print('This is your comment: '+comment+'\n')
+            line=str(myflare_start[i][0])+','+ str(myflare_stop[i][0])+','+str(time.index(myflare_start[i][0]))+','+str(time.index(myflare_stop[i][0]))+','+str(comment)
+            print(line)
+            myflares.write(line+'\n')
 		
 		#In any case I set back the counter and empty the lists:
-		reset_pipeline()
-		myflares.close()
+        del comment
+        reset_pipeline()
+        myflares.close()
+        
+    return
+
+def loaddata(cluster, objectid):
+	
+	'''
+
+    Imports the light curve, the quiescent model light curve, start and stop
+    time of flare events from the Appaloosa pipeline and the statistical error
+    for the Kepler photometry.
+    ====================================
+    Input:
+
+    cluster: open cluster name string
+    objectid: light curve ID
+
+    =====================================
+    Output:
+    
+    time: time series of K2 observations 
+    flux_gap: K2 observations
+    error: mean statistical error derived from the short term variation in the quiescent
+    flux
+    flux_model: model light curve as derived by Appaloosa
+    istart: start ids of flare events in flux_gap
+    istop: stop id of flare events in flux_gap
+
+    '''
+
+	
+	#Read in data and convert to lists:
+	time,flux_gap,error,flux_model=np.loadtxt('share/cross_match/union/'+cluster+'_post_appa/'+objectid+'.txt',delimiter=',',unpack=True)
+	istart, istop=np.loadtxt('share/cross_match/union/'+cluster+'_post_appa/'+objectid+'_flares.txt',delimiter=',',unpack=True,dtype=np.dtype(np.int16))
+	
+
+    
+
+	return list(time),list(flux_gap),list(error),list(flux_model),list(istart), list(istop)
+
+
+def plotLC(time,flux_gap,error,flux_model,istart, istop,objectid):
+
+	global interrupted
+	#Set up a plot with matplotlib:
+	A=plt.figure()
+	ax =plt.subplot(211)
+	ax.plot(time, flux_gap,'o',alpha=0.8, lw=0.4, picker=5) #observation
+	ax.errorbar(time, flux_gap,yerr=error,alpha=0.8, lw=1) #statistical error
+	for g,start in enumerate(istart):
+		xregion=time[istart[g]:istop[g]+1]
+		yregion=flux_gap[istart[g]:istop[g]+1]
+		ax.plot(xregion,yregion,color='red', lw=2) #detected flares in observations
+		#Shade the region where a flare is detected by Appaloosa:
+		ax.axvspan(xregion[0],xregion[-1],edgecolor='black', alpha=0.2,linewidth=2)
+
+	ax.plot(time, flux_model, 'blue', lw=0.5) #model light curve from which the flare signatures deviate
+
+	#Cosmetics
+
+	plt.title('EPIC '+ objectid)
+	plt.ylabel(r'Flux ($e^-$ sec$^{-1}$)')
+
+	#Plot range specification
+
+	xdur0 = min(time)
+	xdur1 = max(time)
+	xdurok = np.where((time >= xdur0) & (time <= xdur1))
+	xdurok=xdurok[0] #xdurok is a tuple with a list: conversion needed
+	plt.xlim(xdur0, xdur1) 
+	plt.ylim(min([flux_gap[x] for x in xdurok]), max([flux_gap[x] for x in xdurok]))
+
+
+	#Set up a residuals plot with matplotlib:
+
+	bx=plt.subplot(212,sharex=ax)
+	residuals=[x-y for x,y in zip(flux_gap,flux_model)]
+	bx.plot(time, residuals,alpha=0.8, lw=1) #residuals
+	plt.xlim(xdur0, xdur1)
+	plt.ylim(max(-500,min([residuals[x] for x in xdurok])), max([500]+[residuals[x] for x in xdurok]))
+	for g,start in enumerate(istart):
+		xregion=time[istart[g]:istop[g]+1]
+		yregion=flux_gap[istart[g]:istop[g]+1]
+		#Shade the region where a flare is detected by Appaloosa:
+		bx.axvspan(xregion[0],xregion[-1],edgecolor='black', alpha=0.2,linewidth=2)
+	plt.xlabel('Time (BJD - 2454833 days)')
+	plt.ylabel(r'Residual Flux ($e^-$ sec$^{-1}$)')
+
+	return A,ax,bx
+
+def wrap(cluster, objectid,interrupted=False):
+
+	#Load and plot data:
+
+	time,flux_gap,error,flux_model,istart, istop=loaddata(cluster, objectid)
+	reset_pipeline()
+	plot,ax,bx=plotLC(time,flux_gap,error,flux_model,istart, istop,objectid)
+	global ax,time
+	#Here is where I link the interactive figure to the code:
+	#The FigureCanvas method mpl_connect() returns a connection id which is simply an integer.
+
+	#Connect event with string 'key_press_event' to function on_key:
+
+	cid = plot.canvas.mpl_connect('key_press_event', on_key) 
+
+	#Connect event with string 'pick_event' to function on_pick:
+
+	cid2=plot.canvas.mpl_connect('pick_event', on_pick)
+
+	plt.show()
 
 	return
 
-#Here is where I link the interactive figure to the code:
-#The FigureCanvas method mpl_connect() returns a connection id which is simply an integer.
+#--------------------------------------------------------------------------------------------------
+#EXECUTION:
+#--------------------------------------------------------------------------------------------------
 
-#Connect event with string 'key_press_event' to function on_key:
+#Kepler EPIC ID for the light curve I want to look at:
+cluster='Ruprecht_147'
+#objectid='219396051'
 
-cid = A.canvas.mpl_connect('key_press_event', on_key) 
-
-#Connect event with string 'pick_event' to function on_pick:
-
-cid2=A.canvas.mpl_connect('pick_event', on_pick)
-
-plt.show()
+#Do I want to analyse this LC or have I already done so?
+import glob, os
+working_directory = os.getcwd()
+EPIC=open('share/cross_match/union/'+cluster+'_union_IDs_wo_prefix.txt')
+os.chdir("share/cross_match/union/"+cluster+"_post_appa")
+interrupted=False
+for ID in EPIC:
+	objectid=ID[:9]
+	global objectid
+	print(glob.glob(ID+"_my_flares.txt"))
+	if glob.glob(objectid+"_my_flares.txt")==[]:
+		os.chdir(working_directory)
+		wrap(cluster, objectid)
+	else:
+		user=input('You have at least started analysing LC ' + objectid+'. Want to work on it anyway? (y/n)')
+		if user=='y':
+			os.chdir(working_directory)
+			interrupted=True
+			wrap(cluster, objectid, interrupted=interrupted)
+		
 
